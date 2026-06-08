@@ -22,11 +22,12 @@ import { TokenBalance } from "@/components/TokenBalance";
 import { TokenSelect } from "@/components/TokenSelect";
 import { TransactionsPanel } from "@/components/TransactionsPanel";
 import { BridgeTab } from "@/components/BridgeTab";
+import { CrossChainTab } from "@/components/CrossChainTab";
 import { useToast } from "@/components/Toast";
 import { saveTransaction } from "@/lib/transactions";
 
 const DEBOUNCE_MS = 750;
-type ActiveTab = "swap" | "transactions" | "bridge";
+type ActiveTab = "swap" | "bridge" | "xchain" | "transactions";
 type ApiKeyError = "api_key_missing" | "api_key_invalid" | null;
 
 export function SwapCard() {
@@ -418,8 +419,9 @@ export function SwapCard() {
     ];
 
     const TABS: { id: ActiveTab; label: string }[] = [
-        { id: "swap", label: "Swap" },
-        { id: "bridge", label: "Bridge" },
+        { id: "swap",         label: "Swap" },
+        { id: "bridge",       label: "Bridge" },
+        { id: "xchain",       label: "X-Chain" },
         { id: "transactions", label: "Transactions" },
     ];
 
@@ -619,6 +621,8 @@ export function SwapCard() {
                         </>
                     ) : activeTab === "bridge" ? (
                         <BridgeTab selectedChainId={selectedChainId} onChainChange={pickChain} />
+                    ) : activeTab === "xchain" ? (
+                        <CrossChainTab />
                     ) : (
                         <TransactionsPanel key={txHistoryVersion} walletAddress={address} selectedChainId={selectedChainId} />
                     )}

@@ -30,3 +30,8 @@ externalPort = 8081
 [[ports]]
 localPort = 25051
 externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+LIFI_API_KEY = "10f1d37d-ac61-480f-b17c-b917b9f898cf"
