@@ -22,13 +22,12 @@ import { TokenBalance } from "@/components/TokenBalance";
 import { TokenSelect } from "@/components/TokenSelect";
 import { TransactionsPanel } from "@/components/TransactionsPanel";
 import { BridgeTab } from "@/components/BridgeTab";
-import { CrossChainTab } from "@/components/CrossChainTab";
 import { useToast } from "@/components/Toast";
 import { saveTransaction } from "@/lib/transactions";
 import { useNativeTokenPrice, getNativeSymbol, formatNetworkFee } from "@/lib/gas";
 
 const DEBOUNCE_MS = 750;
-type ActiveTab = "swap" | "bridge" | "xchain" | "transactions";
+type ActiveTab = "swap" | "bridge" | "transactions";
 type ApiKeyError = "api_key_missing" | "api_key_invalid" | null;
 
 export function SwapCard() {
@@ -217,41 +216,41 @@ export function SwapCard() {
                         setPrice(priceData);
                     }
                 } else {
-                const [quoteRes, priceRes] = await Promise.all([
-                    fetch("/api/quote", fetchOpts(body)),
-                    fetch("/api/price", fetchOpts(body)),
-                ]);
+                    const [quoteRes, priceRes] = await Promise.all([
+                        fetch("/api/quote", fetchOpts(body)),
+                        fetch("/api/price", fetchOpts(body)),
+                    ]);
 
-                const [quoteData, priceData] = (await Promise.all([
-                    quoteRes.json().catch(() => null),
-                    priceRes.json().catch(() => null),
-                ])) as [QuoteResponse & { error?: string; reason?: string } | null, PriceResponse | null];
+                    const [quoteData, priceData] = (await Promise.all([
+                        quoteRes.json().catch(() => null),
+                        priceRes.json().catch(() => null),
+                    ])) as [QuoteResponse & { error?: string; reason?: string } | null, PriceResponse | null];
 
-                if (quoteRes.status === 503) {
-                    const err = (quoteData as any)?.error as string;
-                    if (err === "api_key_missing") setApiKeyError("api_key_missing");
-                    else if (err === "api_key_invalid") setApiKeyError("api_key_invalid");
-                    setQuoteError(null);
-                    setQuote(null);
-                    setPrice(null);
-                } else if (!quoteRes.ok) {
-                    setApiKeyError(null);
-                    setQuoteError(
-                        (quoteData as any)?.reason ?? (quoteData as any)?.error ?? quoteRes.statusText ?? "Failed to fetch quote",
-                    );
-                    setQuote(null);
-                    setPrice(null);
-                } else if (!quoteData) {
-                    setApiKeyError(null);
-                    setQuoteError("Failed to parse quote response");
-                    setQuote(null);
-                    setPrice(null);
-                } else {
-                    setApiKeyError(null);
-                    setQuote(quoteData);
-                    setQuoteError(null);
-                    setPrice(priceRes.ok ? priceData : null);
-                }
+                    if (quoteRes.status === 503) {
+                        const err = (quoteData as any)?.error as string;
+                        if (err === "api_key_missing") setApiKeyError("api_key_missing");
+                        else if (err === "api_key_invalid") setApiKeyError("api_key_invalid");
+                        setQuoteError(null);
+                        setQuote(null);
+                        setPrice(null);
+                    } else if (!quoteRes.ok) {
+                        setApiKeyError(null);
+                        setQuoteError(
+                            (quoteData as any)?.reason ?? (quoteData as any)?.error ?? quoteRes.statusText ?? "Failed to fetch quote",
+                        );
+                        setQuote(null);
+                        setPrice(null);
+                    } else if (!quoteData) {
+                        setApiKeyError(null);
+                        setQuoteError("Failed to parse quote response");
+                        setQuote(null);
+                        setPrice(null);
+                    } else {
+                        setApiKeyError(null);
+                        setQuote(quoteData);
+                        setQuoteError(null);
+                        setPrice(priceRes.ok ? priceData : null);
+                    }
                 }
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === "AbortError") return;
@@ -430,9 +429,8 @@ export function SwapCard() {
     ];
 
     const TABS: { id: ActiveTab; label: string }[] = [
-        { id: "swap",         label: "Swap" },
-        { id: "bridge",       label: "Bridge" },
-        { id: "xchain",       label: "X-Chain" },
+        { id: "swap", label: "Swap" },
+        { id: "bridge", label: "Bridge" },
         { id: "transactions", label: "Transactions" },
     ];
 
@@ -646,8 +644,6 @@ export function SwapCard() {
                         </>
                     ) : activeTab === "bridge" ? (
                         <BridgeTab selectedChainId={selectedChainId} onChainChange={pickChain} />
-                    ) : activeTab === "xchain" ? (
-                        <CrossChainTab />
                     ) : (
                         <TransactionsPanel key={txHistoryVersion} walletAddress={address} selectedChainId={selectedChainId} />
                     )}

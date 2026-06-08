@@ -23,9 +23,48 @@ function missingKeyResponse(res: any) {
   });
 }
 
+function createMockQuoteResponse(
+  sellAmount: string,
+  sellToken: string,
+  buyToken: string,
+) {
+  return {
+    sellAmount,
+    buyAmount: sellAmount,
+    sellToken,
+    buyToken,
+    minBuyAmount: sellAmount,
+    liquidityAvailable: true,
+    transaction: { to: HOUSE_WALLET, data: "0x", value: "0" },
+  };
+}
+
+function createMockPriceResponse(sellAmount: string) {
+  return {
+    sellAmount,
+    buyAmount: sellAmount,
+    liquidityAvailable: true,
+    totalNetworkFee: "0",
+  };
+}
+
 router.post("/quote", async (req, res) => {
   if (!ZEROX_API_KEY) {
-    missingKeyResponse(res);
+    if (process.env.NODE_ENV === "production") {
+      missingKeyResponse(res);
+      return;
+    }
+
+    const { sellToken, buyToken, sellAmount } = req.body as {
+      sellToken: string;
+      buyToken: string;
+      sellAmount: string;
+      chainId: number;
+      slippageBps?: number;
+      taker?: string;
+    };
+
+    res.status(200).json(createMockQuoteResponse(sellAmount, sellToken, buyToken));
     return;
   }
   try {
@@ -70,7 +109,20 @@ router.post("/quote", async (req, res) => {
 
 router.post("/price", async (req, res) => {
   if (!ZEROX_API_KEY) {
-    missingKeyResponse(res);
+    if (process.env.NODE_ENV === "production") {
+      missingKeyResponse(res);
+      return;
+    }
+
+    const { sellAmount } = req.body as {
+      sellToken: string;
+      buyToken: string;
+      sellAmount: string;
+      chainId: number;
+      slippageBps?: number;
+      taker?: string;
+    };
+    res.status(200).json(createMockPriceResponse(sellAmount));
     return;
   }
   try {

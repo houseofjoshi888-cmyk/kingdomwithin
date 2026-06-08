@@ -1,12 +1,23 @@
 
 
 const ZEROX_BASE_URL = "https://api.0x.org";
-const ZEROX_API_KEY = process.env.ZEROX_API_KEY ?? "";
+const ZEROX_API_KEY = process.env.ZEROX_API_KEY ?? process.env.ZEROX_API_KEY_FALLBACK ?? "";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   if (!ZEROX_API_KEY) {
-    return res.status(503).json({ error: "api_key_missing" });
+    if (process.env.NODE_ENV === "production") {
+      return res.status(503).json({ error: "api_key_missing" });
+    }
+
+    console.log("[PRICE API] ZEROX_API_KEY missing — returning mock price for development");
+    const { sellAmount } = req.body as any;
+    return res.status(200).json({
+      sellAmount,
+      buyAmount: sellAmount,
+      liquidityAvailable: true,
+      totalNetworkFee: "0",
+    });
   }
   try {
     const { sellToken, buyToken, sellAmount, chainId, slippageBps, taker } = req.body as {
