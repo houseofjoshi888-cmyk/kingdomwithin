@@ -1,13 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
   "include": [
-    "src/**/*",
-    "api/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
     "build",
     "dist",
+    "api/**/*",
     "**/*.test.ts"
   ],
   "compilerOptions": {
