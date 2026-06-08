@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 const LIFI_API = "https://li.quest/v1";
@@ -11,15 +12,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const params = new URLSearchParams({
-    fromChain:   String(fromChain),
-    toChain:     String(toChain),
-    fromToken:   String(fromToken),
-    toToken:     String(toToken),
-    fromAmount:  String(fromAmount),
+    fromChain: String(fromChain),
+    toChain: String(toChain),
+    fromToken: String(fromToken),
+    toToken: String(toToken),
+    fromAmount: String(fromAmount),
     fromAddress: String(fromAddress),
-    slippage:    "0.005",
-    order:       "CHEAPEST",
-    integrator:  "hojswap",
+    slippage: "0.005",
+    order: "CHEAPEST",
+    integrator: "hojswap",
   });
 
   const apiKey = process.env.LIFI_API_KEY ?? "";
