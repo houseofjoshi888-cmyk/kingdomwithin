@@ -25,6 +25,7 @@ import { BridgeTab } from "@/components/BridgeTab";
 import { CrossChainTab } from "@/components/CrossChainTab";
 import { useToast } from "@/components/Toast";
 import { saveTransaction } from "@/lib/transactions";
+import { useNativeTokenPrice, getNativeSymbol, formatNetworkFee } from "@/lib/gas";
 
 const DEBOUNCE_MS = 750;
 type ActiveTab = "swap" | "bridge" | "xchain" | "transactions";
@@ -411,6 +412,16 @@ export function SwapCard() {
         isQuoting || isApproving || isSwapping || !!swapTxHash ||
         insufficientBalance || (!needsApproval && !quote?.transaction);
 
+    const nativeUsdPrice = useNativeTokenPrice(selectedChainId);
+    const nativeSymbol = getNativeSymbol(selectedChainId);
+    const gasDisplay = useMemo(() => formatNetworkFee(
+        quote?.totalNetworkFee ?? price?.totalNetworkFee,
+        quote?.transaction?.gas,
+        quote?.transaction?.gasPrice,
+        nativeUsdPrice,
+        nativeSymbol,
+    ), [quote, price, nativeUsdPrice, nativeSymbol]);
+
     const CHAINS = [
         { id: base.id, label: "Base" },
         { id: mainnet.id, label: "Ethereum" },
@@ -577,12 +588,26 @@ export function SwapCard() {
                                 </div>
                             </div>
 
+                            {/* Gas estimate row — visible before confirming */}
+                            {gasDisplay && (
+                                <div className="flex items-center justify-between px-1 text-[11px] text-white/45">
+                                    <span>Est. network fee</span>
+                                    <span className="font-mono tabular-nums">
+                                        {gasDisplay.usd
+                                            ? <>{gasDisplay.usd} <span className="text-white/25">({gasDisplay.eth})</span></>
+                                            : gasDisplay.eth}
+                                    </span>
+                                </div>
+                            )}
+
                             <SwapShowMore
                                 slippageBps={slippageBps} onSlippageChange={setSlippageBps}
                                 quote={quote} price={price}
                                 sellToken={sellToken} buyToken={buyToken}
                                 sellDecimals={sellDecimals} buyDecimals={buyDecimals}
                                 isQuoting={isQuoting}
+                                nativeUsdPrice={nativeUsdPrice}
+                                nativeSymbol={nativeSymbol}
                             />
 
                             {!isConnected ? (

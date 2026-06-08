@@ -300,6 +300,13 @@ export function CrossChainTab() {
     return lifiQuote.estimate.feeCosts.map((f) => `${formatCompactNumber(parseFloat(formatUnits(BigInt(f.amount), f.token.decimals)), 4)} ${f.token.symbol}`).join(" + ");
   }, [lifiQuote]);
 
+  const lifiGasCosts = useMemo(() => {
+    if (!lifiQuote?.estimate.gasCosts?.length) return null;
+    return lifiQuote.estimate.gasCosts
+      .map((g) => `~${formatCompactNumber(parseFloat(formatUnits(BigInt(g.amount), g.token.decimals)), 5)} ${g.token.symbol}`)
+      .join(" + ");
+  }, [lifiQuote]);
+
   const lifiDuration = lifiQuote ? Math.ceil(lifiQuote.estimate.executionDuration / 60) : null;
 
   const btnLabel = useMemo(() => {
@@ -492,6 +499,11 @@ export function CrossChainTab() {
                 <span>Minimum received</span>
                 <span className="font-mono">{toAmountDisplay.min} {toToken.symbol}</span>
               </div>
+              {lifiGasCosts && (
+                <div className="flex items-center justify-between text-white/40 text-[11px]">
+                  <span>Est. network fee</span><span className="font-mono">{lifiGasCosts}</span>
+                </div>
+              )}
               {lifiTotalFee && (
                 <div className="flex items-center justify-between text-white/40 text-[11px]">
                   <span>Bridge fee</span><span className="font-mono">{lifiTotalFee}</span>

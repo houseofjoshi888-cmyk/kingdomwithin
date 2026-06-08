@@ -51,6 +51,12 @@ export type PriceResponse = {
   buyAmount?: string;
   sellAmount?: string;
   liquidityAvailable?: boolean;
+  totalNetworkFee?: string | null;
+  fees?: {
+    gasFee?: QuoteFee | null;
+    integratorFee?: QuoteFee | null;
+    zeroExFee?: QuoteFee | null;
+  };
 };
 
 export function tokenTo0xParam(t: Token) {

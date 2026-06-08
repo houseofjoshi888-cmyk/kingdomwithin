@@ -13,6 +13,8 @@ export function SwapShowMore({
   sellDecimals,
   buyDecimals,
   isQuoting,
+  nativeUsdPrice,
+  nativeSymbol,
 }: {
   slippageBps: number;
   onSlippageChange: (bps: number) => void;
@@ -23,6 +25,8 @@ export function SwapShowMore({
   sellDecimals: number | null;
   buyDecimals: number | null;
   isQuoting: boolean;
+  nativeUsdPrice?: number | null;
+  nativeSymbol?: string;
 }) {
   return (
     <details className="group hoj-panel rounded-2xl">
@@ -42,6 +46,8 @@ export function SwapShowMore({
             sellDecimals={sellDecimals}
             buyDecimals={buyDecimals}
             isQuoting={isQuoting}
+            nativeUsdPrice={nativeUsdPrice}
+            nativeSymbol={nativeSymbol}
           />
         </div>
         <p className="text-[11px] text-white/40">

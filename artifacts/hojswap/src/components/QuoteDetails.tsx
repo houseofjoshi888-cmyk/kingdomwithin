@@ -9,6 +9,7 @@ import {
 } from "@/lib/quote";
 import { formatCompactNumber, formatUsdDisplay } from "@/lib/format";
 import { Token, isUsdStableToken, tokensForChain } from "@/lib/tokens";
+import { formatNetworkFee, type GasFeeDisplay } from "@/lib/gas";
 
 export function QuoteDetailsRows({
   quote,
@@ -18,6 +19,8 @@ export function QuoteDetailsRows({
   sellDecimals,
   buyDecimals,
   isQuoting,
+  nativeUsdPrice,
+  nativeSymbol,
 }: {
   quote: QuoteResponse | null;
   price: PriceResponse | null;
@@ -26,6 +29,8 @@ export function QuoteDetailsRows({
   sellDecimals: number | null;
   buyDecimals: number | null;
   isQuoting: boolean;
+  nativeUsdPrice?: number | null;
+  nativeSymbol?: string;
 }) {
   const chainTokens = useMemo(
     () => tokensForChain(sellToken.chainId),
@@ -56,6 +61,18 @@ export function QuoteDetailsRows({
 
   const priceImpact = quote && price ? calcPriceImpactPercent(quote, price) : null;
   const gasEth = quote ? formatGasCostEth(quote.transaction) : null;
+
+  const sym = nativeSymbol ?? "ETH";
+  const gasDisplay: GasFeeDisplay | null = useMemo(() => {
+    const totalFee = quote?.totalNetworkFee ?? price?.totalNetworkFee;
+    return formatNetworkFee(
+      totalFee,
+      quote?.transaction?.gas,
+      quote?.transaction?.gasPrice,
+      nativeUsdPrice ?? null,
+      sym,
+    );
+  }, [quote, price, nativeUsdPrice, sym]);
 
   const exchangeRate = useMemo(() => {
     if (quote?.sellAmount == null || quote?.buyAmount == null || sellDecimals == null || buyDecimals == null)
@@ -111,7 +128,16 @@ export function QuoteDetailsRows({
         />
       ) : null}
       {routeLabel ? <Row label="Route" value={routeLabel} /> : null}
-      {gasEth ? <Row label="Est. gas" value={`~${gasEth} ETH`} /> : null}
+      {gasDisplay ? (
+        <Row
+          label="Est. network fee"
+          value={gasDisplay.usd
+            ? `${gasDisplay.usd} (${gasDisplay.eth})`
+            : gasDisplay.eth}
+        />
+      ) : gasEth ? (
+        <Row label="Est. network fee" value={`~${gasEth} ${sym}`} />
+      ) : null}
       {houseFeeStr ? <Row label="House fee (1%)" value={houseFeeStr} /> : null}
       {zeroExFeeStr ? <Row label="0x fee" value={zeroExFeeStr} /> : null}
       {quote?.issues?.simulationIncomplete ? (
