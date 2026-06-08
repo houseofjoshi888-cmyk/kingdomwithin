@@ -267,7 +267,7 @@ export function SwapCard() {
 
     const buyAmountRaw = useMemo(() => {
         const raw = quote?.buyAmount ?? price?.buyAmount;
-        if (!raw) return null;
+        if (raw == null || raw === "") return null;
         try {
             const decimals = buyDecimals ?? tokenDecimals(buyToken);
             return formatUnits(BigInt(String(raw)), decimals);
@@ -277,7 +277,7 @@ export function SwapCard() {
     }, [quote?.buyAmount, price?.buyAmount, buyToken, buyDecimals]);
 
     const buyAmountFormatted = useMemo(() => {
-        if (!buyAmountRaw) return null;
+        if (buyAmountRaw == null || buyAmountRaw === "") return null;
         try {
             return formatSwapAmountDisplay(buyAmountRaw);
         } catch {
@@ -565,7 +565,8 @@ export function SwapCard() {
                                         <div className="mt-2 truncate text-xl font-medium tabular-nums text-white/90 sm:text-2xl" title={buyAmountRaw ?? undefined}>
                                             {(() => {
                                                 if (isQuoting) return "…";
-                                                if (!sellAmountInput || sellAmountInput === "0") return "—";
+                                                if (!sellAmountInput) return "—";
+                                                if (Number(sellAmountInput) === 0) return "0";
                                                 if ((quote as any)?.liquidityAvailable === false) return "No liquidity";
                                                 return buyAmountFormatted ?? "—";
                                             })()}
