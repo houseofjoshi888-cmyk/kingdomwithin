@@ -35,3 +35,4 @@ externalPort = 3000
 
 [userenv.shared]
 LIFI_API_KEY = "10f1d37d-ac61-480f-b17c-b917b9f898cf"
+ZEROX_API_KEY = "10f1d37d-ac61-480f-b17c-b917b9f898cf"
