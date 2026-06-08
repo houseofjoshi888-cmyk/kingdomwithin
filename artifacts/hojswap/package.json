@@ -49,6 +49,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@vercel/node": "^3.0.0",
     "@vitejs/plugin-react": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
