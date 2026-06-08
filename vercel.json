@@ -4,13 +4,6 @@
     "outputDirectory": "artifacts/hojswap/dist/public",
     "installCommand": "pnpm install",
     "framework": null,
-    "functions": {
-        "artifacts/hojswap/api/**/*.ts": {
-            "runtime": "nodejs18.x",
-            "memory": 1024,
-            "maxDuration": 10
-        }
-    },
     "rewrites": [
         {
             "source": "/api/:path*",
