@@ -35,11 +35,12 @@ const TOKENS_BY_CHAIN: Record<number, XToken[]> = {
     { symbol: "SHIB", address: "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE", decimals: 18 },
   ],
   [base.id]: [
-    { symbol: "ETH",  address: "0x0000000000000000000000000000000000000000", decimals: 18 },
-    { symbol: "USDC", address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", decimals: 6 },
-    { symbol: "USDT", address: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", decimals: 6 },
-    { symbol: "DAI",  address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb", decimals: 18 },
+    { symbol: "ETH",   address: "0x0000000000000000000000000000000000000000", decimals: 18 },
+    { symbol: "USDC",  address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", decimals: 6 },
+    { symbol: "USDT",  address: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", decimals: 6 },
+    { symbol: "DAI",   address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb", decimals: 18 },
     { symbol: "cbBTC", address: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", decimals: 8 },
+    { symbol: "SHIB",  address: "0xFCa95aeb5bF44aE355806A5ad14659c940dC6BF7", decimals: 9 },
   ],
   [cronos.id]: [
     { symbol: "CRO",  address: "0x0000000000000000000000000000000000000000", decimals: 18 },
