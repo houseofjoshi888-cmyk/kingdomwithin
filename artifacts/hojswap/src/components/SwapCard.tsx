@@ -123,14 +123,10 @@ export function SwapCard() {
     const insufficientBalance = useMemo(() => {
         if (!sellAmountInput || !sellBalanceData || !walletOnSelectedChain) return false;
         const dec = sellBalanceData.decimals;
-        console.log("[DEBUG] Balance check - input:", sellAmountInput, "balance:", sellBalanceData.value.toString(), "decimals:", dec);
         try {
             const input = parseUnits(sellAmountInput, dec);
-            const result = input > sellBalanceData.value;
-            console.log("[DEBUG] Balance check - result:", result, "input:", input.toString(), "balance:", sellBalanceData.value.toString());
-            return result;
-        } catch (e) {
-            console.log("[DEBUG] Balance check - error:", e);
+            return input > sellBalanceData.value;
+        } catch {
             return false;
         }
     }, [sellAmountInput, sellBalanceData, walletOnSelectedChain]);
@@ -154,18 +150,8 @@ export function SwapCard() {
 
     useEffect(() => {
         let cancelled = false;
-        fetchDecimals(sellToken).then((d) => {
-            if (!cancelled) {
-                console.log("[DEBUG] Fetched sellToken decimals:", d);
-                setSellDecimals(d);
-            }
-        });
-        fetchDecimals(buyToken).then((d) => {
-            if (!cancelled) {
-                console.log("[DEBUG] Fetched buyToken decimals:", d);
-                setBuyDecimals(d);
-            }
-        });
+        fetchDecimals(sellToken).then((d) => { if (!cancelled) setSellDecimals(d); });
+        fetchDecimals(buyToken).then((d) => { if (!cancelled) setBuyDecimals(d); });
         return () => { cancelled = true; };
     }, [sellToken, buyToken]);
 
@@ -204,9 +190,34 @@ export function SwapCard() {
                 taker: isConnected ? address : undefined,
             };
             try {
+                const fetchOpts = (b: object) => ({
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(b),
+                    signal,
+                });
+
+                if (!isConnected) {
+                    const priceRes = await fetch("/api/price", fetchOpts(body));
+                    const priceData = await priceRes.json().catch(() => null) as PriceResponse | null;
+                    setApiKeyError(null);
+                    setQuote(null);
+                    if (priceRes.status === 503) {
+                        const err = (priceData as any)?.error as string;
+                        if (err === "api_key_missing") setApiKeyError("api_key_missing");
+                        else if (err === "api_key_invalid") setApiKeyError("api_key_invalid");
+                        setPrice(null);
+                    } else if (!priceRes.ok || !priceData) {
+                        setQuoteError((priceData as any)?.reason ?? (priceData as any)?.error ?? "Failed to fetch price");
+                        setPrice(null);
+                    } else {
+                        setQuoteError(null);
+                        setPrice(priceData);
+                    }
+                } else {
                 const [quoteRes, priceRes] = await Promise.all([
-                    fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal }),
-                    fetch("/api/price", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal }),
+                    fetch("/api/quote", fetchOpts(body)),
+                    fetch("/api/price", fetchOpts(body)),
                 ]);
 
                 const [quoteData, priceData] = (await Promise.all([
@@ -239,6 +250,7 @@ export function SwapCard() {
                     setQuoteError(null);
                     setPrice(priceRes.ok ? priceData : null);
                 }
+                }
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === "AbortError") return;
                 console.error("Quote fetch error:", err);
@@ -253,14 +265,15 @@ export function SwapCard() {
     }, [sellAmountInput, sellToken, buyToken, selectedChainId, slippageBps, sellDecimals, isConnected, address]);
 
     const buyAmountRaw = useMemo(() => {
-        if (!quote?.buyAmount) return null;
+        const raw = quote?.buyAmount ?? price?.buyAmount;
+        if (!raw) return null;
         try {
             const decimals = buyDecimals ?? tokenDecimals(buyToken);
-            return formatUnits(BigInt(String(quote.buyAmount)), decimals);
+            return formatUnits(BigInt(String(raw)), decimals);
         } catch {
             return null;
         }
-    }, [quote?.buyAmount, buyToken, buyDecimals]);
+    }, [quote?.buyAmount, price?.buyAmount, buyToken, buyDecimals]);
 
     const buyAmountFormatted = useMemo(() => {
         if (!buyAmountRaw) return null;
