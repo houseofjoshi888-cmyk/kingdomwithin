@@ -41,7 +41,7 @@ packages:
   - scripts
 
 catalog:
-  '@replit/vite-plugin-cartographer': ^0.5.1
+  '@replit/vite-plugin-cartographer': ^0.5.21
   '@replit/vite-plugin-dev-banner': ^0.1.1
   '@replit/vite-plugin-runtime-error-modal': ^0.0.6
   '@tailwindcss/vite': ^4.1.14
@@ -75,8 +75,6 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 overrides:
-  # Allow use-sync-external-store to work with React 19
-  "use-sync-external-store>react": "19.1.0"
   # replit uses linux-x64 only, we can exclude all other platforms
   "esbuild>@esbuild/darwin-arm64": "-"
   "esbuild>@esbuild/darwin-x64": "-"

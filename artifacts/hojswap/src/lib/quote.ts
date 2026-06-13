@@ -11,6 +11,17 @@ export type QuoteFee = {
   type: string;
 };
 
+export type Permit2Eip712 = {
+  types: Record<string, { name: string; type: string }[]>;
+  domain: {
+    name: string;
+    chainId: number;
+    verifyingContract: `0x${string}`;
+  };
+  message: Record<string, unknown>;
+  primaryType: string;
+};
+
 export type QuoteResponse = {
   buyAmount?: string;
   sellAmount?: string;
@@ -38,6 +49,11 @@ export type QuoteResponse = {
     balance?: unknown | null;
     simulationIncomplete?: boolean;
   };
+  permit2?: {
+    type: string;
+    hash: `0x${string}`;
+    eip712: Permit2Eip712;
+  } | null;
   transaction?: {
     to: `0x${string}`;
     data: `0x${string}`;

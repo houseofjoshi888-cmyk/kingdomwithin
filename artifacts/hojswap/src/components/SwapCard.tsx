@@ -4,11 +4,12 @@ import {
     useBalance,
     useChainId,
     useSendTransaction,
+    useSignTypedData,
     useSwitchChain,
     useWaitForTransactionReceipt,
     useWriteContract,
 } from "wagmi";
-import { parseUnits, maxUint256, formatUnits } from "viem";
+import { parseUnits, maxUint256, formatUnits, concat, numberToHex, size } from "viem";
 import { base, mainnet } from "wagmi/chains";
 import { cronos, xrp, getChainName } from "@/lib/chains";
 import { clampToDecimals, formatSwapAmountDisplay, isValidNumberInput } from "@/lib/format";
@@ -316,6 +317,7 @@ export function SwapCard() {
     const spender = quote?.issues?.allowance?.spender;
     const { writeContractAsync: approveAsync } = useWriteContract();
     const { sendTransactionAsync } = useSendTransaction();
+    const { signTypedDataAsync } = useSignTypedData();
     const [swapTxHash, setSwapTxHash] = useState<`0x${string}` | undefined>();
     const [isSwapping, setIsSwapping] = useState(false);
     const [isApproving, setIsApproving] = useState(false);
@@ -378,10 +380,25 @@ export function SwapCard() {
         if (!quote?.transaction) return;
         setIsSwapping(true);
         try {
-            const { to, data, value, gas } = quote.transaction;
+            const { to, value, gas } = quote.transaction;
+            let txData = quote.transaction.data;
+
+            if (quote.permit2?.eip712) {
+                const { types, domain, message, primaryType } = quote.permit2.eip712;
+                const { EIP712Domain: _domain, ...typesWithoutDomain } = types as any;
+                const signature = await signTypedDataAsync({
+                    types: typesWithoutDomain,
+                    domain: domain as any,
+                    message: message as any,
+                    primaryType,
+                });
+                const signatureLengthInHex = numberToHex(size(signature), { signed: false, size: 32 });
+                txData = concat([txData, signatureLengthInHex, signature]) as `0x${string}`;
+            }
+
             const txHash = await sendTransactionAsync({
                 to,
-                data,
+                data: txData,
                 value: value ? BigInt(value) : 0n,
                 gas: gas ? BigInt(gas) : undefined,
                 chainId: selectedChainId,
@@ -548,14 +565,16 @@ export function SwapCard() {
                             </div>
 
                             {/* Flip */}
-                            <button
-                                type="button"
-                                onClick={flipTokens}
-                                className="mx-auto -my-1 flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(212,175,55,0.25)] bg-black/35 text-[rgba(212,175,55,0.9)] hover:border-[rgba(212,175,55,0.5)] transition"
-                                aria-label="Flip tokens"
-                            >
-                                ⇅
-                            </button>
+                            <div className="flex justify-center py-1">
+                                <button
+                                    type="button"
+                                    onClick={flipTokens}
+                                    className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(212,175,55,0.3)] bg-black/40 text-[rgba(212,175,55,0.9)] hover:border-[rgba(212,175,55,0.6)] hover:bg-black/60 transition shadow-sm text-lg"
+                                    aria-label="Flip tokens"
+                                >
+                                    ⇅
+                                </button>
+                            </div>
 
                             {/* Buy panel */}
                             <div className="hoj-panel rounded-3xl p-4">

@@ -2,9 +2,7 @@
   "compilerOptions": {
     "incremental": true,
     "isolatedModules": true,
-    "lib": [
-      "es2022"
-    ],
+    "lib": ["es2022"],
     "module": "esnext",
     "moduleResolution": "bundler",
     "noEmitOnError": true,
@@ -23,8 +21,6 @@
     "skipLibCheck": true,
     "target": "es2022",
     "types": [],
-    "customConditions": [
-      "workspace"
-    ]
+    "customConditions": ["workspace"]
   }
 }
