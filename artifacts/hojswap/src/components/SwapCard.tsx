@@ -3,6 +3,7 @@ import {
     useAccount,
     useBalance,
     useChainId,
+    usePublicClient,
     useSendTransaction,
     useSignTypedData,
     useSwitchChain,
@@ -56,6 +57,7 @@ export function SwapCard() {
     const [sellDecimals, setSellDecimals] = useState<number | null>(null);
     const [buyDecimals, setBuyDecimals] = useState<number | null>(null);
     const [txHistoryVersion, setTxHistoryVersion] = useState(0);
+    const [quoteVersion, setQuoteVersion] = useState(0);
 
     const quoteDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
     const quoteAbort = useRef<AbortController | null>(null);
@@ -264,7 +266,7 @@ export function SwapCard() {
             }
         }, DEBOUNCE_MS);
         return () => { if (quoteDebounce.current) clearTimeout(quoteDebounce.current); };
-    }, [sellAmountInput, sellToken, buyToken, selectedChainId, slippageBps, sellDecimals, isConnected, address]);
+    }, [sellAmountInput, sellToken, buyToken, selectedChainId, slippageBps, sellDecimals, isConnected, address, quoteVersion]);
 
     const buyAmountRaw = useMemo(() => {
         const raw = quote?.buyAmount ?? price?.buyAmount;
@@ -304,17 +306,15 @@ export function SwapCard() {
         }
     }, [quote?.minBuyAmount, buyToken, buyDecimals]);
 
+    // 0x v2 returns issues.allowance = { actual, spender } (no 'expected' field).
+    // Its presence (non-null) means the Permit2 contract needs ERC20 approval.
     const needsApproval = useMemo(() => {
         if (!quote?.issues?.allowance || isNative(sellToken)) return false;
-        try {
-            const { actual, expected } = quote.issues.allowance;
-            return BigInt(actual) < BigInt(expected);
-        } catch {
-            return false;
-        }
+        return true;
     }, [quote?.issues?.allowance, sellToken]);
 
     const spender = quote?.issues?.allowance?.spender;
+    const publicClient = usePublicClient({ chainId: selectedChainId });
     const { writeContractAsync: approveAsync } = useWriteContract();
     const { sendTransactionAsync } = useSendTransaction();
     const { signTypedDataAsync } = useSignTypedData();
@@ -360,14 +360,17 @@ export function SwapCard() {
         if (!sellToken.address || !spender) return;
         setIsApproving(true);
         try {
-            await approveAsync({
+            const hash = await approveAsync({
                 address: sellToken.address,
                 abi: erc20Abi,
                 functionName: "approve",
                 args: [spender, maxUint256],
                 chainId: selectedChainId,
             });
-            showToast({ kind: "success", title: "Approval sent", message: "Now you can swap." });
+            showToast({ kind: "info", title: "Approval submitted", message: "Waiting for confirmation…" });
+            await publicClient?.waitForTransactionReceipt({ hash });
+            showToast({ kind: "success", title: "Approval confirmed", message: "Fetching updated quote…" });
+            setQuoteVersion((v) => v + 1);
         } catch (e: any) {
             if (!e?.message?.includes("User rejected"))
                 showToast({ kind: "error", title: "Approval failed", message: e?.shortMessage ?? e?.message ?? String(e) });

@@ -44,7 +44,7 @@ export type QuoteResponse = {
     allowance?: {
       spender: `0x${string}`;
       actual: string;
-      expected: string;
+      expected?: string;
     } | null;
     balance?: unknown | null;
     simulationIncomplete?: boolean;
