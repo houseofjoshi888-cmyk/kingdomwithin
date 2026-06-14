@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter @workspace/hojswap run build",
+  "outputDirectory": "artifacts/hojswap/dist/public",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" }
+  ]
+}
