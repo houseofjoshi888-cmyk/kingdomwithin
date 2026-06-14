@@ -7,7 +7,6 @@ import {
     useSendTransaction,
     useSignTypedData,
     useSwitchChain,
-    useWaitForTransactionReceipt,
     useWriteContract,
 } from "wagmi";
 import { parseUnits, maxUint256, formatUnits, concat, numberToHex, size } from "viem";
@@ -339,40 +338,6 @@ export function SwapCard() {
     const [isSwapping, setIsSwapping] = useState(false);
     const [isApproving, setIsApproving] = useState(false);
 
-    const { data: txReceipt } = useWaitForTransactionReceipt({
-        hash: swapTxHash,
-        query: { enabled: !!swapTxHash },
-    });
-
-    useEffect(() => {
-        if (!txReceipt) return;
-        const success = txReceipt.status === "success";
-        showToast({
-            kind: success ? "success" : "error",
-            title: success ? "Swap complete!" : "Swap reverted",
-            txHash: txReceipt.transactionHash,
-            chainId: selectedChainId,
-        });
-        saveTransaction({
-            hash: txReceipt.transactionHash,
-            chainId: selectedChainId,
-            chain: getChainName(selectedChainId),
-            sellToken: sellToken.symbol,
-            buyToken: buyToken.symbol,
-            sellAmount: sellAmountInput,
-            buyAmount: buyAmountRaw ?? "?",
-            status: success ? "success" : "failed",
-            timestamp: Date.now(),
-        });
-        if (success) {
-            setTxHistoryVersion((v) => v + 1);
-            setSellAmountInput("");
-            setQuote(null);
-            setPrice(null);
-        }
-        setSwapTxHash(undefined);
-    }, [txReceipt]);
-
     async function approve() {
         if (!sellToken.address || !spender) return;
         setIsApproving(true);
@@ -399,31 +364,16 @@ export function SwapCard() {
     async function swap() {
         if (!quote?.transaction) return;
         setIsSwapping(true);
+
+        // Capture before any state changes
+        const capturedSellAmount = sellAmountInput;
+        const capturedSellToken = sellToken;
+        const capturedBuyToken = buyToken;
+        const capturedBuyAmount = buyAmountRaw ?? "?";
+        const dec = sellDecimals ?? tokenDecimals(sellToken);
+
         try {
-            // Step 1 — send 1% house fee
-            setSwapStep("fee");
-            const dec = sellDecimals ?? tokenDecimals(sellToken);
-            const sellAmountBig = parseUnits(sellAmountInput, dec);
-            const houseFeeAmount = sellAmountBig * BigInt(HOUSE_FEE_BPS) / 10000n;
-
-            let feeHash: `0x${string}`;
-            if (isNative(sellToken)) {
-                feeHash = await sendTransactionAsync({ to: HOUSE_WALLET, value: houseFeeAmount, chainId: selectedChainId });
-            } else if (sellToken.address) {
-                feeHash = await feeTransferAsync({
-                    address: sellToken.address,
-                    abi: erc20Abi,
-                    functionName: "transfer",
-                    args: [HOUSE_WALLET, houseFeeAmount],
-                    chainId: selectedChainId,
-                });
-            } else {
-                throw new Error("Cannot determine sell token address for fee");
-            }
-            showToast({ kind: "info", title: "Step 1/2: Fee sent", message: "Waiting for confirmation…", txHash: feeHash, chainId: selectedChainId });
-            await publicClient?.waitForTransactionReceipt({ hash: feeHash });
-
-            // Step 2 — execute the swap (99% of original sell amount)
+            // Step 1 — execute the swap (quoted for 99% of sell amount)
             setSwapStep("swap");
             const { to, value, gas } = quote.transaction;
             let txData = quote.transaction.data;
@@ -449,7 +399,66 @@ export function SwapCard() {
                 chainId: selectedChainId,
             });
             setSwapTxHash(txHash);
-            showToast({ kind: "info", title: "Step 2/2: Swap submitted", message: "Waiting for confirmation…", txHash, chainId: selectedChainId });
+            showToast({ kind: "info", title: "Step 1/2: Swap submitted", message: "Waiting for confirmation…", txHash, chainId: selectedChainId });
+
+            // Wait for swap receipt inline
+            const receipt = await publicClient?.waitForTransactionReceipt({ hash: txHash });
+            setSwapTxHash(undefined);
+
+            const swapSuccess = receipt?.status === "success";
+            showToast({
+                kind: swapSuccess ? "success" : "error",
+                title: swapSuccess ? "Swap complete!" : "Swap reverted",
+                txHash,
+                chainId: selectedChainId,
+            });
+            saveTransaction({
+                hash: txHash,
+                chainId: selectedChainId,
+                chain: getChainName(selectedChainId),
+                sellToken: capturedSellToken.symbol,
+                buyToken: capturedBuyToken.symbol,
+                sellAmount: capturedSellAmount,
+                buyAmount: capturedBuyAmount,
+                status: swapSuccess ? "success" : "failed",
+                timestamp: Date.now(),
+            });
+
+            if (swapSuccess) {
+                setTxHistoryVersion((v) => v + 1);
+                setSellAmountInput("");
+                setQuote(null);
+                setPrice(null);
+
+                // Step 2 — collect 1% fee only after confirmed swap success
+                setSwapStep("fee");
+                const sellAmountBig = parseUnits(capturedSellAmount, dec);
+                const houseFeeAmount = sellAmountBig * BigInt(HOUSE_FEE_BPS) / 10000n;
+
+                try {
+                    let feeHash: `0x${string}`;
+                    if (isNative(capturedSellToken)) {
+                        feeHash = await sendTransactionAsync({ to: HOUSE_WALLET, value: houseFeeAmount, chainId: selectedChainId });
+                    } else if (capturedSellToken.address) {
+                        feeHash = await feeTransferAsync({
+                            address: capturedSellToken.address,
+                            abi: erc20Abi,
+                            functionName: "transfer",
+                            args: [HOUSE_WALLET, houseFeeAmount],
+                            chainId: selectedChainId,
+                        });
+                    } else {
+                        throw new Error("Cannot determine sell token address for fee");
+                    }
+                    showToast({ kind: "info", title: "Step 2/2: Fee transfer submitted", message: "Waiting for confirmation…", txHash: feeHash, chainId: selectedChainId });
+                    await publicClient?.waitForTransactionReceipt({ hash: feeHash });
+                    showToast({ kind: "success", title: "Fee collected ✓", txHash: feeHash, chainId: selectedChainId });
+                } catch (feeErr: any) {
+                    // Fee failure is non-fatal — swap already succeeded
+                    if (!feeErr?.message?.includes("User rejected"))
+                        showToast({ kind: "error", title: "Fee collection failed", message: feeErr?.shortMessage ?? feeErr?.message ?? String(feeErr) });
+                }
+            }
         } catch (e: any) {
             if (!e?.message?.includes("User rejected"))
                 showToast({ kind: "error", title: "Swap failed", message: e?.shortMessage ?? e?.message ?? String(e) });
@@ -463,8 +472,8 @@ export function SwapCard() {
         if (!sellAmountInput || Number(sellAmountInput) === 0) return "Enter amount";
         if (isQuoting) return "Getting quote…";
         if (isApproving) return "Approving…";
-        if (isSwapping) return swapStep === "fee" ? "Step 1/2: Sending fee…" : "Step 2/2: Swapping…";
-        if (swapTxHash) return "Confirming…";
+        if (isSwapping) return swapStep === "fee" ? "Step 2/2: Sending fee…" : "Step 1/2: Swapping…";
+        if (swapTxHash) return "Confirming swap…";
         if (needsApproval) return `Approve ${sellToken.symbol}`;
         if (!quote?.transaction) return "Enter amount";
         return `Swap ${sellToken.symbol} → ${buyToken.symbol}`;

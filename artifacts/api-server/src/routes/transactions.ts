@@ -5,11 +5,14 @@ const router: IRouter = Router();
 const ETHERSCAN_KEY = process.env.ETHERSCAN_API_KEY ?? "";
 const HOUSE_WALLET = "0x6736d2eA9807297F0e56967361B9410854B86a5f";
 
-function getEtherscanApiUrl(chainId: number) {
+const XRP_EVM_CHAIN_ID = 1440002;
+
+function getEtherscanApiUrl(chainId: number): string | null {
   if (chainId === 8453) return "https://api.basescan.org/api";
   if (chainId === 1) return "https://api.etherscan.io/api";
   if (chainId === 25) return "https://api.cronoscan.com/api";
-  return "https://api.etherscan.io/api";
+  if (chainId === XRP_EVM_CHAIN_ID) return null; // No Etherscan-compatible API for XRP EVM
+  return null;
 }
 
 async function fetchEtherscanTxns(
@@ -49,11 +52,16 @@ router.get("/transactions", async (req, res) => {
       return;
     }
 
-    const baseUrl = getEtherscanApiUrl(chainId);
+    const apiUrl = getEtherscanApiUrl(chainId);
+    if (!apiUrl) {
+      // Chain has no Etherscan-compatible API (e.g. XRP EVM)
+      res.json({ items: [], total: 0 });
+      return;
+    }
 
     const [tokenTxns, ethTxns] = await Promise.all([
-      fetchEtherscanTxns(baseUrl, walletAddress, ETHERSCAN_KEY, "tokentx", 1000),
-      fetchEtherscanTxns(baseUrl, walletAddress, ETHERSCAN_KEY, "txlist", 500),
+      fetchEtherscanTxns(apiUrl, walletAddress, ETHERSCAN_KEY, "tokentx", 1000),
+      fetchEtherscanTxns(apiUrl, walletAddress, ETHERSCAN_KEY, "txlist", 500),
     ]);
 
     const seen = new Set<string>();
