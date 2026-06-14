@@ -310,6 +310,18 @@ export function SwapCard() {
         }
     }, [quote?.minBuyAmount, buyToken, buyDecimals]);
 
+    const houseFeeFormatted = useMemo(() => {
+        if (!sellAmountInput || Number(sellAmountInput) === 0) return null;
+        try {
+            const dec = sellDecimals ?? tokenDecimals(sellToken);
+            const sellAmountBig = parseUnits(sellAmountInput, dec);
+            const fee = sellAmountBig * BigInt(HOUSE_FEE_BPS) / 10000n;
+            return `${formatSwapAmountDisplay(formatUnits(fee, dec))} ${sellToken.symbol}`;
+        } catch {
+            return null;
+        }
+    }, [sellAmountInput, sellDecimals, sellToken]);
+
     // 0x v2 returns issues.allowance = { actual, spender } (no 'expected' field).
     // Its presence (non-null) means the Permit2 contract needs ERC20 approval.
     const needsApproval = useMemo(() => {
@@ -650,6 +662,14 @@ export function SwapCard() {
                                             ? <>{gasDisplay.usd} <span className="text-white/25">({gasDisplay.eth})</span></>
                                             : gasDisplay.eth}
                                     </span>
+                                </div>
+                            )}
+
+                            {/* House fee row */}
+                            {houseFeeFormatted && (
+                                <div className="flex items-center justify-between px-1 text-[11px] text-white/45">
+                                    <span>House fee <span className="text-white/30">(1%)</span></span>
+                                    <span className="font-mono tabular-nums">{houseFeeFormatted}</span>
                                 </div>
                             )}
 
