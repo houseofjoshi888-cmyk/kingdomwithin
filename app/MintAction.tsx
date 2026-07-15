@@ -51,7 +51,7 @@ export function MintAction({ sourceText, analysis, mode }: { sourceText: string;
       setStatus("PINNING CANONICAL SVG TO IPFS…");
       const artifact = await pinCanonicalArtifact(sourceText, analysis, mode, address, (message) => signMessageAsync({ message }));
       const tokenId = BigInt(keccak256(encodePacked(["address", "bytes32"], [address, artifact.contentHash])));
-      setStatus("CONFIRM 0.01 ETH MINT IN WALLET…");
+      setStatus(`CONFIRM ${formatEther(mintPrice)} ETH MINT IN WALLET…`);
       const hash = await writeContractAsync({
         address: MALKUTA_ENGINE_ADDRESS,
         abi: MALKUTA_ENGINE_ABI,

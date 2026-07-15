@@ -6,6 +6,8 @@ const source = await readFile(new URL("../contracts/MalkutaEngine.sol", import.m
 
 test("public mint requires an active epoch and exact payment", () => {
   assert.match(source, /function mint\([\s\S]*?external payable nonReentrant/);
+  assert.match(source, /epochs\[0\]\s*=\s*Epoch\(0\.03 ether, true, "Genesis"\)/);
+  assert.match(source, /emit EpochConfigured\(0, 0\.03 ether, true, "Genesis"\)/);
   assert.match(source, /require\(epoch\.isActive/);
   assert.match(source, /require\(msg\.value == epoch\.mintPrice/);
 });

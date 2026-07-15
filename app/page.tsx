@@ -373,7 +373,7 @@ export default function Home() {
         <div className="anchor-copy"><p>The Base mainnet contract records the immutable IPFS metadata URI, content hash, protocol version, epoch, recipient, operator, price, and timestamp for every public mint and admin airdrop.</p><button onClick={() => setShowMint(!showMint)}>CONTRACT DETAILS <span>↗</span></button></div>
         <div className="chain-specs">
           <div><span>CONTRACT</span><b>MALKUTA ENGINE</b><small>{MALKUTA_ENGINE_CONFIGURED ? `BASE MAINNET · ${MALKUTA_ENGINE_ADDRESS.slice(0, 8)}…${MALKUTA_ENGINE_ADDRESS.slice(-4)}` : "BASE MAINNET"}</small></div>
-          <div><span>CURRENT EPOCH</span><b>GENESIS</b><small>#0 · 0.01 ETH · ACTIVE</small></div>
+          <div><span>CURRENT EPOCH</span><b>GENESIS</b><small>#0 · 0.03 ETH · ACTIVE</small></div>
           <div><span>PROVENANCE</span><b>IMMUTABLE</b><small>IPFS · HASH · VERSION · EPOCH</small></div>
           <div><span>MINT PATHS</span><b>PUBLIC + ADMIN</b><small>PAID MINT · GAS-SPONSORED AIRDROP</small></div>
         </div>

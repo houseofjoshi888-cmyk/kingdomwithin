@@ -47,8 +47,8 @@ contract MalkutaEngine is ERC721URIStorage, ERC721Royalty, AccessControl, Reentr
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
         _setDefaultRoyalty(HOUSE_WALLET, ROYALTY_BPS);
-        epochs[0] = Epoch(0.01 ether, true, "Genesis");
-        emit EpochConfigured(0, 0.01 ether, true, "Genesis");
+        epochs[0] = Epoch(0.03 ether, true, "Genesis");
+        emit EpochConfigured(0, 0.03 ether, true, "Genesis");
     }
 
     function mint(
