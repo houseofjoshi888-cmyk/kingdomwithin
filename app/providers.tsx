@@ -5,6 +5,7 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { createConfig, WagmiProvider, http } from "wagmi";
 import { base } from "wagmi/chains";
 import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
+import { BASE_MAINNET_RPC_URL } from "../lib/network";
 
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
 
@@ -16,7 +17,7 @@ const config = createConfig({
     ...(walletConnectProjectId ? [walletConnect({ projectId: walletConnectProjectId })] : []),
   ],
   transports: {
-    [base.id]: http("https://mainnet.base.org"),
+    [base.id]: http(BASE_MAINNET_RPC_URL),
   },
   ssr: true,
 });

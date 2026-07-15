@@ -1,0 +1,27 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { test } from "node:test";
+
+const files = [
+  "app/providers.tsx",
+  "app/page.tsx",
+  "app/WalletButton.tsx",
+  "lib/network.ts",
+  "PROTOCOL.md",
+  ".env.example",
+];
+
+const source = files.map((file) => readFileSync(file, "utf8")).join("\n");
+
+test("all public network configuration targets Base mainnet", () => {
+  assert.match(source, /chains:\s*\[base\]/);
+  assert.match(source, /BASE_MAINNET_CHAIN_ID\s*=\s*8453/);
+  assert.match(source, /https:\/\/mainnet\.base\.org/);
+  assert.match(source, /0xD9883fDdf57Ca58f775Bdab96C0e7c3F1c918af3/);
+  assert.match(source, /https:\/\/basescan\.org\/address\//);
+});
+
+test("testnet configuration cannot be introduced into public app surfaces", () => {
+  assert.doesNotMatch(source, /sepolia|testnet|84532|baseSepolia/i);
+});
+

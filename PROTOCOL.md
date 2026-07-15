@@ -71,8 +71,8 @@ The Keccak digest is not inserted into the JSON it hashes. A document cannot con
 4. Build and serialize the final manifest.
 5. Compute the manifest Keccak-256 digest.
 6. Pin the exact manifest bytes to IPFS.
-7. Call `mint(to, tokenId, contentHash, protocolVersion, mappingDigest)` on Base Sepolia.
-8. Read the public `provenance(tokenId)` value and compare every stored value with the submitted values.
+7. On Base mainnet (chain ID `8453`), call `mint(tokenId, contentHash, protocolVersion)` on the verified deployment.
+8. Read the public `tokenProvenance(tokenId)` value and compare every stored value with the submitted values.
 
 No metadata or artwork bytes may change after mint. A changed file necessarily produces a different CID and digest.
 
