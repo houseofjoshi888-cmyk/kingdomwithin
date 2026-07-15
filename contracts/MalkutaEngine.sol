@@ -9,6 +9,7 @@ contract MalkutaEngine is ERC721, AccessControl {
     using Strings for uint256;
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    address payable public constant HOUSE_WALLET = payable(0x6736d2eA9807297F0e56967361B9410854B86a5f);
 
     struct Epoch {
         uint256 mintPrice;
@@ -86,7 +87,8 @@ contract MalkutaEngine is ERC721, AccessControl {
 
     // ADMIN: Withdraw accumulated funds
     function withdraw() external onlyRole(ADMIN_ROLE) {
-        payable(msg.sender).transfer(address(this).balance);
+        (bool success, ) = HOUSE_WALLET.call{value: address(this).balance}("");
+        require(success, "Withdrawal failed.");
     }
 
     // Necessary override for AccessControl

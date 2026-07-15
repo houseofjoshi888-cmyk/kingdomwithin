@@ -99,3 +99,5 @@ The contract deployed on Base mainnet at `0xD9883fDdf57Ca58f775Bdab96C0e7c3F1c91
 Paid minting must remain disabled in the Composer because the deployed contract calls `ownerOf(tokenId)` to test whether an unused token exists. OpenZeppelin ERC-721 reverts with `ERC721NonexistentToken` for that exact case, so every new-token mint reverts before `_safeMint`. The corrected source uses `_ownerOf(tokenId) == address(0)`. It must be deployed and its replacement Base mainnet address verified before the UI enables transaction submission.
 
 The corrected replacement source also exposes an `ADMIN_ROLE`-restricted `airdrop` function. It lets an administrator pay the gas to mint directly to a recipient while recording the same immutable content hash, protocol version, epoch, timestamp, and `MandalaMinted` event as the public mint path. The recipient does not submit a transaction or pay gas.
+
+All ETH collected by public paid mints is withdrawn exclusively to the immutable House wallet `0x6736d2eA9807297F0e56967361B9410854B86a5f`. An administrator may trigger withdrawal but cannot redirect the destination. Admin airdrops are nonpayable and add no mint revenue.

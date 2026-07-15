@@ -38,3 +38,9 @@ test("airdrop is an admin-only gas-sponsored mint with immutable provenance", ()
   assert.match(airdrop, /timestamp:\s*block\.timestamp/);
   assert.doesNotMatch(airdrop, /payable/);
 });
+
+test("all withdrawn mint proceeds are locked to the House wallet", () => {
+  assert.match(source, /HOUSE_WALLET\s*=\s*payable\(0x6736d2eA9807297F0e56967361B9410854B86a5f\)/);
+  assert.match(source, /HOUSE_WALLET\.call\{value:\s*address\(this\)\.balance}/);
+  assert.doesNotMatch(source, /payable\(msg\.sender\)\.transfer/);
+});
