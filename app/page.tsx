@@ -2,6 +2,7 @@
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { WalletButton } from "./WalletButton";
 import {
   analyzeVerse,
   canonicalProtocolPayload,
@@ -164,7 +165,6 @@ export default function Home() {
   const [customError, setCustomError] = useState("");
   const [active, setActive] = useState(true);
   const [tab, setTab] = useState<"audit" | "protocol">("audit");
-  const [wallet, setWallet] = useState("");
   const [showMint, setShowMint] = useState(false);
   const [protocolSeal, setProtocolSeal] = useState("");
   const [artifactStatus, setArtifactStatus] = useState("READY FOR CANONICAL CAPTURE");
@@ -248,15 +248,6 @@ export default function Home() {
     }
   };
 
-  const connectWallet = async () => {
-    const eth = (window as Window & { ethereum?: { request: (args: { method: string }) => Promise<string[]> } }).ethereum;
-    if (!eth) { setWallet("Wallet not detected"); return; }
-    try {
-      const accounts = await eth.request({ method: "eth_requestAccounts" });
-      setWallet(accounts[0] ? `${accounts[0].slice(0, 6)}…${accounts[0].slice(-4)}` : "Not connected");
-    } catch { setWallet("Connection declined"); }
-  };
-
   return (
     <main>
       <header className="topbar">
@@ -265,7 +256,7 @@ export default function Home() {
           <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </a>
         <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> BASE MAINNET / READ ONLY</div>
-        <div className="top-actions"><Link href="/how-to-use">HOW TO USE</Link><button className="wallet-button" onClick={connectWallet}>{wallet || "CONNECT WALLET"}<span>↗</span></button></div>
+        <div className="top-actions"><Link href="/how-to-use">HOW TO USE</Link><WalletButton /></div>
       </header>
 
       <section className="intro" id="composer">
