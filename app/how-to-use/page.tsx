@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteFooter } from "../SiteFooter";
 
 const steps = [
   ["Choose a mapping", "Use the immutable Aramaic/Hebrew Standard, the universal Root-60 sexagesimal bridge, or upload a validated custom JSON mapping."],
@@ -48,7 +49,7 @@ export default function HowToUse() {
         </dl>
       </section>
 
-      <footer><div className="brand footer-brand"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span></div><p>THE SOURCE IS NORMALIZED.<br />THE OUTPUT IS VERIFIABLE.</p><Link href="/#composer">RETURN TO COMPOSER ↗</Link></footer>
+      <SiteFooter tagline="THE SOURCE IS NORMALIZED. THE OUTPUT IS VERIFIABLE." />
     </main>
   );
 }

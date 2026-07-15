@@ -5,6 +5,7 @@ import Link from "next/link";
 import { WalletButton } from "./WalletButton";
 import { MintAction } from "./MintAction";
 import { EpochDashboard } from "./EpochDashboard";
+import { SiteFooter } from "./SiteFooter";
 import {
   analyzeVerse,
   canonicalProtocolPayload,
@@ -15,7 +16,6 @@ import {
   TEST_INPUTS,
   type MappingMode,
 } from "../lib/protocol";
-import { MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED, MALKUTA_ENGINE_EXPLORER_URL } from "../lib/network";
 
 const VERSES = [
   { ref: "Genesis 1:1", hebrew: "בראשית ברא אלהים את השמים ואת הארץ" },
@@ -165,7 +165,6 @@ export default function Home() {
   const [customError, setCustomError] = useState("");
   const [active, setActive] = useState(true);
   const [tab, setTab] = useState<"audit" | "protocol">("audit");
-  const [showMint, setShowMint] = useState(false);
   const [protocolSeal, setProtocolSeal] = useState("");
   const [artifactStatus, setArtifactStatus] = useState("READY FOR CANONICAL CAPTURE");
   const [manifestDigest, setManifestDigest] = useState("");
@@ -369,18 +368,15 @@ export default function Home() {
       <EpochDashboard />
 
       <section className="anchor-section">
-        <div className="anchor-heading"><p className="eyebrow"><span>05</span> ON-CHAIN ANCHOR</p><h2>Truth, made permanent.</h2></div>
-        <div className="anchor-copy"><p>The Base mainnet contract records the immutable IPFS metadata URI, content hash, protocol version, epoch, recipient, operator, price, and timestamp for every public mint and admin airdrop.</p><button onClick={() => setShowMint(!showMint)}>CONTRACT DETAILS <span>↗</span></button></div>
+        <div className="anchor-heading"><p className="eyebrow"><span>05</span> SOVEREIGN ARCHIVE</p><h2>Truth, made permanent.</h2><div className="anchor-sigil" aria-hidden="true"><i /><i /><span>∞</span></div></div>
         <div className="chain-specs">
-          <div><span>CONTRACT</span><b>MALKUTA ENGINE</b><small>{MALKUTA_ENGINE_CONFIGURED ? `BASE MAINNET · ${MALKUTA_ENGINE_ADDRESS.slice(0, 8)}…${MALKUTA_ENGINE_ADDRESS.slice(-4)}` : "BASE MAINNET"}</small></div>
           <div><span>CURRENT EPOCH</span><b>GENESIS</b><small>#0 · 0.03 ETH · ACTIVE</small></div>
           <div><span>PROVENANCE</span><b>IMMUTABLE</b><small>IPFS · HASH · VERSION · EPOCH</small></div>
           <div><span>MINT PATHS</span><b>PUBLIC + ADMIN</b><small>PAID MINT · GAS-SPONSORED AIRDROP</small></div>
         </div>
-        {showMint && <div className="mint-notice"><span>PRODUCTION CONTRACT</span><p>Exact-price public minting, admin-only airdrops, immutable tokenURI and provenance, epoch controls, supply tracking, House-wallet-only withdrawals, and a 7% ERC-2981 secondary-sale royalty to the House wallet.</p>{MALKUTA_ENGINE_CONFIGURED && <a href={MALKUTA_ENGINE_EXPLORER_URL} target="_blank" rel="noreferrer">VIEW ON BASESCAN ↗</a>}</div>}
       </section>
 
-      <footer><div className="brand footer-brand"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span></div><p>THE SCRIPTURE IS THE SEED.<br />THE PROTOCOL IS THE PROOF.</p><Link href="/how-to-use">HOW TO USE ↗</Link></footer>
+      <SiteFooter />
     </main>
   );
 }

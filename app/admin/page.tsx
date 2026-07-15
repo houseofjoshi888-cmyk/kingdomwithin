@@ -9,6 +9,7 @@ import { analyzeVerse, PROTOCOL_VERSION } from "../../lib/protocol";
 import { BASE_MAINNET_CHAIN_ID, MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED } from "../../lib/network";
 import { MALKUTA_ENGINE_ABI } from "../../lib/contract";
 import { pinCanonicalArtifact } from "../../lib/pinning";
+import { SiteFooter } from "../SiteFooter";
 
 const ADMIN_ROLE = keccak256(toBytes("ADMIN_ROLE"));
 
@@ -150,6 +151,7 @@ export default function AdminDashboard() {
         </div>
       </section>
       {status && <output className="admin-global-status">{status}</output>}
+      <SiteFooter tagline="SOVEREIGN CONTROL. IMMUTABLE PROVENANCE." />
     </main>
   );
 }

@@ -6,6 +6,7 @@ import { useReadContract } from "wagmi";
 import { WalletButton } from "../WalletButton";
 import { MALKUTA_ENGINE_ABI } from "../../lib/contract";
 import { BASE_MAINNET_CHAIN_ID, MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED } from "../../lib/network";
+import { SiteFooter } from "../SiteFooter";
 
 export default function VerifyPage() {
   const [tokenInput, setTokenInput] = useState("");
@@ -49,6 +50,7 @@ export default function VerifyPage() {
           </dl>}
         </div>
       </section>
+      <SiteFooter tagline="TRUST THE PROOF. PRESERVE THE RECORD." />
     </main>
   );
 }
