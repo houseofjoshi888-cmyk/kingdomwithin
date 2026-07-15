@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   analyzeVerse,
   canonicalProtocolPayload,
@@ -261,7 +262,7 @@ export default function Home() {
           <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </a>
         <div className="status-line"><span className="pulse" /> PROTOCOL V1.0 <i /> BASE READY</div>
-        <button className="wallet-button" onClick={connectWallet}>{wallet || "CONNECT WALLET"}<span>↗</span></button>
+        <div className="top-actions"><Link href="/how-to-use">HOW TO USE</Link><button className="wallet-button" onClick={connectWallet}>{wallet || "CONNECT WALLET"}<span>↗</span></button></div>
       </header>
 
       <section className="intro" id="composer">
@@ -399,7 +400,7 @@ export default function Home() {
         {showMint && <div className="mint-notice"><span>TRACK A STAGED</span><p>MalkutaEngine stores contentHash, protocolVersion, and mappingDigest during _safeMint. Add the audited deployment address and ABI to activate submissions.</p><button onClick={connectWallet}>{wallet || "CONNECT WALLET"}</button></div>}
       </section>
 
-      <footer><div className="brand footer-brand"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span></div><p>THE SCRIPTURE IS THE SEED.<br />THE PROTOCOL IS THE PROOF.</p><span>© 2026 HOUSE OF JOSHI</span></footer>
+      <footer><div className="brand footer-brand"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span></div><p>THE SCRIPTURE IS THE SEED.<br />THE PROTOCOL IS THE PROOF.</p><Link href="/how-to-use">HOW TO USE ↗</Link></footer>
     </main>
   );
 }
