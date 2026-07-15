@@ -4,43 +4,50 @@ import test from "node:test";
 
 const source = await readFile(new URL("../contracts/MalkutaEngine.sol", import.meta.url), "utf8");
 
-test("the corrected contract source stores epoch provenance during safe mint", () => {
-  assert.match(source, /_safeMint\(msg\.sender, tokenId\)/);
+test("public mint requires an active epoch and exact payment", () => {
+  assert.match(source, /function mint\([\s\S]*?external payable nonReentrant/);
+  assert.match(source, /require\(epoch\.isActive/);
+  assert.match(source, /require\(msg\.value == epoch\.mintPrice/);
+});
+
+test("minting stores immutable marketplace metadata and provenance", () => {
+  assert.match(source, /_safeMint\(recipient, tokenId\)/);
+  assert.match(source, /_setTokenURI\(tokenId, metadataURI\)/);
   assert.match(source, /tokenProvenance\[tokenId\]\s*=\s*Provenance/);
-  assert.match(source, /epochId:\s*currentEpochId/);
+  assert.match(source, /metadataURI:\s*metadataURI/);
   assert.match(source, /timestamp:\s*block\.timestamp/);
-  assert.match(source, /emit MandalaMinted\(tokenId, currentEpochId, _contentHash\)/);
+  assert.doesNotMatch(source, /function\s+setTokenURI\s*\(/);
+  assert.doesNotMatch(source, /setProvenance|setContentHash/);
 });
 
-test("the corrected contract exposes no provenance override", () => {
-  assert.doesNotMatch(source, /setContentHash/);
-  assert.doesNotMatch(source, /setProvenance/);
-});
-
-test("the corrected source checks unused token IDs without reverting", () => {
+test("unused token IDs are checked without ownerOf reverting", () => {
+  assert.match(source, /tokenId == uint256\(keccak256\(abi\.encodePacked\(recipient, contentHash\)\)\)/);
   assert.match(source, /_ownerOf\(tokenId\)\s*==\s*address\(0\)/);
   assert.doesNotMatch(source, /require\(ownerOf\(tokenId\)/);
 });
 
-test("Genesis epoch and role-based administration match the deployment", () => {
-  assert.match(source, /epochs\[0\]\s*=\s*Epoch\(0\.01 ether, true, "Genesis"\)/);
-  assert.match(source, /onlyRole\(ADMIN_ROLE\)/);
+test("admin airdrop uses the same immutable mint pipeline without payment", () => {
+  const airdrop = source.match(/function airdrop\([\s\S]*?_mintMandala\(recipient, tokenId, contentHash, protocolVersion, metadataURI, 0\);\s*}/)?.[0] ?? "";
+  assert.match(airdrop, /external onlyRole\(ADMIN_ROLE\) nonReentrant/);
+  assert.doesNotMatch(airdrop, /payable/);
 });
 
-test("airdrop is an admin-only gas-sponsored mint with immutable provenance", () => {
-  const airdrop = source.match(/function airdrop\([\s\S]*?emit MandalaMinted\(_tokenId, currentEpochId, _contentHash\);\s*}/)?.[0] ?? "";
-
-  assert.match(airdrop, /external onlyRole\(ADMIN_ROLE\)/);
-  assert.match(airdrop, /_ownerOf\(_tokenId\)\s*==\s*address\(0\)/);
-  assert.match(airdrop, /_safeMint\(_recipient, _tokenId\)/);
-  assert.match(airdrop, /tokenProvenance\[_tokenId\]\s*=\s*Provenance/);
-  assert.match(airdrop, /epochId:\s*currentEpochId/);
-  assert.match(airdrop, /timestamp:\s*block\.timestamp/);
-  assert.doesNotMatch(airdrop, /payable/);
+test("supply, epochs, and complete mint events are available to the app and indexer", () => {
+  assert.match(source, /_totalMinted\+\+/);
+  assert.match(source, /function totalSupply\(\) external view returns \(uint256\)/);
+  assert.match(source, /event EpochConfigured/);
+  assert.match(source, /event MandalaMinted\([\s\S]*string metadataURI,[\s\S]*uint256 price/);
 });
 
 test("all withdrawn mint proceeds are locked to the House wallet", () => {
   assert.match(source, /HOUSE_WALLET\s*=\s*payable\(0x6736d2eA9807297F0e56967361B9410854B86a5f\)/);
-  assert.match(source, /HOUSE_WALLET\.call\{value:\s*address\(this\)\.balance}/);
-  assert.doesNotMatch(source, /payable\(msg\.sender\)\.transfer/);
+  assert.match(source, /HOUSE_WALLET\.call\{value:\s*amount}/);
+  assert.doesNotMatch(source, /payable\(msg\.sender\)/);
+});
+
+test("state-changing value paths use reentrancy protection", () => {
+  assert.match(source, /contract MalkutaEngine is ERC721URIStorage, AccessControl, ReentrancyGuard/);
+  assert.match(source, /function mint\([\s\S]*?nonReentrant/);
+  assert.match(source, /function airdrop\([\s\S]*?nonReentrant/);
+  assert.match(source, /function withdraw\(\) external onlyRole\(ADMIN_ROLE\) nonReentrant/);
 });

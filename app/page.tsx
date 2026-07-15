@@ -3,6 +3,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { WalletButton } from "./WalletButton";
+import { MintAction } from "./MintAction";
 import {
   analyzeVerse,
   canonicalProtocolPayload,
@@ -13,7 +14,7 @@ import {
   TEST_INPUTS,
   type MappingMode,
 } from "../lib/protocol";
-import { MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_EXPLORER_URL } from "../lib/network";
+import { MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED, MALKUTA_ENGINE_EXPLORER_URL } from "../lib/network";
 
 const VERSES = [
   { ref: "Genesis 1:1", hebrew: "בראשית ברא אלהים את השמים ואת הארץ" },
@@ -253,8 +254,8 @@ export default function Home() {
           <span className="brand-mark">K</span>
           <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </a>
-        <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> BASE MAINNET / READ ONLY</div>
-        <div className="top-actions"><Link href="/how-to-use">HOW TO USE</Link><WalletButton /></div>
+        <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> BASE MAINNET / CANONICAL MINT</div>
+        <div className="top-actions"><Link href="/verify">VERIFY NFT</Link><Link href="/how-to-use">HOW TO USE</Link><WalletButton /></div>
       </header>
 
       <section className="intro" id="composer">
@@ -327,6 +328,7 @@ export default function Home() {
             <button onClick={exportManifest} disabled={!analysis.total}>MANIFEST</button>
           </div>
           {manifestDigest && <div className="manifest-digest"><span>DRAFT KECCAK–256</span><code>{manifestDigest}</code></div>}
+          <MintAction sourceText={verse} analysis={analysis} mode={mode} />
         </div>
 
         <aside className="audit-panel panel">
@@ -383,14 +385,14 @@ export default function Home() {
 
       <section className="anchor-section">
         <div className="anchor-heading"><p className="eyebrow"><span>05</span> ON-CHAIN ANCHOR</p><h2>Truth, made permanent.</h2></div>
-        <div className="anchor-copy"><p>The Base mainnet contract records content hash, protocol version, epoch, and timestamp at mint. Its live mint path is held in read-only mode because transaction simulation detects an ERC-721 nonexistent-token revert.</p><button onClick={() => setShowMint(!showMint)}>CONTRACT STATUS <span>↗</span></button></div>
+        <div className="anchor-copy"><p>The Base mainnet contract records the immutable IPFS metadata URI, content hash, protocol version, epoch, recipient, operator, price, and timestamp for every public mint and admin airdrop.</p><button onClick={() => setShowMint(!showMint)}>CONTRACT DETAILS <span>↗</span></button></div>
         <div className="chain-specs">
-          <div><span>CONTRACT</span><b>MALKUTA ENGINE</b><small>BASE MAINNET · {MALKUTA_ENGINE_ADDRESS.slice(0, 8)}…{MALKUTA_ENGINE_ADDRESS.slice(-4)}</small></div>
+          <div><span>CONTRACT</span><b>MALKUTA ENGINE</b><small>{MALKUTA_ENGINE_CONFIGURED ? `BASE MAINNET · ${MALKUTA_ENGINE_ADDRESS.slice(0, 8)}…${MALKUTA_ENGINE_ADDRESS.slice(-4)}` : "BASE MAINNET · ADDRESS REQUIRED"}</small></div>
           <div><span>CURRENT EPOCH</span><b>GENESIS</b><small>#0 · 0.01 ETH · ACTIVE</small></div>
-          <div><span>PROVENANCE</span><b>IMMUTABLE</b><small>HASH · VERSION · EPOCH · TIME</small></div>
-          <div><span>MINT STATUS</span><b>READ ONLY</b><small>CORRECTED REDEPLOY REQUIRED</small></div>
+          <div><span>PROVENANCE</span><b>IMMUTABLE</b><small>IPFS · HASH · VERSION · EPOCH</small></div>
+          <div><span>MINT PATHS</span><b>PUBLIC + ADMIN</b><small>PAID MINT · GAS-SPONSORED AIRDROP</small></div>
         </div>
-        {showMint && <div className="mint-notice"><span>CORRECTED SOURCE READY</span><p>The repository now uses the safe `_ownerOf(tokenId) == address(0)` guard. The current Base mainnet deployment is immutable and still contains the broken guard, so paid minting remains disabled until the corrected contract is redeployed.</p><a href={MALKUTA_ENGINE_EXPLORER_URL} target="_blank" rel="noreferrer">VIEW CURRENT CONTRACT ↗</a></div>}
+        {showMint && <div className="mint-notice"><span>PRODUCTION CONTRACT</span><p>Exact-price public minting, admin-only airdrops, immutable tokenURI and provenance, epoch controls, supply tracking, reentrancy protection, and House-wallet-only withdrawals.</p>{MALKUTA_ENGINE_CONFIGURED && <a href={MALKUTA_ENGINE_EXPLORER_URL} target="_blank" rel="noreferrer">VIEW ON BASESCAN ↗</a>}</div>}
       </section>
 
       <footer><div className="brand footer-brand"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span></div><p>THE SCRIPTURE IS THE SEED.<br />THE PROTOCOL IS THE PROOF.</p><Link href="/how-to-use">HOW TO USE ↗</Link></footer>

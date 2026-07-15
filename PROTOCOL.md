@@ -71,7 +71,7 @@ The Keccak digest is not inserted into the JSON it hashes. A document cannot con
 4. Build and serialize the final manifest.
 5. Compute the manifest Keccak-256 digest.
 6. Pin the exact manifest bytes to IPFS.
-7. On Base mainnet (chain ID `8453`), call `mint(tokenId, contentHash, protocolVersion)` on the verified deployment.
+7. On Base mainnet (chain ID `8453`), call `mint(tokenId, contentHash, protocolVersion, metadataURI)` on the verified deployment and pay the exact active epoch price.
 8. Read the public `tokenProvenance(tokenId)` value and compare every stored value with the submitted values.
 
 No metadata or artwork bytes may change after mint. A changed file necessarily produces a different CID and digest.
@@ -80,11 +80,11 @@ No metadata or artwork bytes may change after mint. A changed file necessarily p
 
 Supply is conceptually infinite and organized into calendar-year epochs. Closing an epoch freezes its summary: most minted source texts, frequency distribution, color distribution, and geometry patterns. Epoch summaries must be derived from immutable mint events and published as separate versioned artifacts; they must never alter token provenance.
 
-The exact on-chain epoch-closing authority, time boundary, summary digest, and token-ID allocation are reserved for the audited contract specification before mainnet deployment.
+Epoch configuration is restricted to `ADMIN_ROLE` and emits `EpochConfigured`. A configured epoch stores its exact price, active state, and name; public minting requires the current epoch to be active.
 
 At year end, a sealed epoch may publish a digital yearbook and/or an `Epoch Final` NFT containing a versioned aggregate summary and selected mathematical signatures. This is a new artifact and cannot modify any prior token.
 
-The real-time dashboard should index `MandalaMinted` events with a subgraph or equivalent event indexer. Statistical aggregation reads canonical manifest attributes and does not store image files. The current Track A event has no geometry fields and the contract has no retrievable manifest URI, so an audited manifest-discovery mechanism or expanded event is required before genuine on-chain distributions can be calculated.
+The real-time dashboard should index `MandalaMinted` events with a subgraph or equivalent event indexer. The event exposes token ID, epoch, recipient, operator, content hash, protocol version, immutable metadata URI, and paid price. Statistical aggregation resolves the canonical manifest from IPFS and does not store image files on-chain.
 
 ## 9. Universal Harmonic Bridge
 
@@ -92,12 +92,12 @@ The instrument is mapping-agnostic, but every mapping remains explicit and versi
 
 Root-60 is defined by this exact function after normalization: add `normalized.charCodeAt(i) % 60` for every character. The alignment constant is `Sum % 360`. No case conversion, locale rule, transliteration, or alternative Unicode mapping is permitted in protocol `2.0.0`.
 
-## 10. Deployment gate
+## 10. Production contract
 
-The contract deployed on Base mainnet at `0xD9883fDdf57Ca58f775Bdab96C0e7c3F1c918af3` has Genesis Epoch 0 active at 0.01 ETH. The repository's `MalkutaEngine.sol` is the corrected replacement source and therefore intentionally differs from that immutable deployment.
+`MalkutaEngine.sol` is the canonical deployable contract. It uses OpenZeppelin v5 `ERC721URIStorage`, `AccessControl`, and `ReentrancyGuard`. Each mint atomically sets an immutable marketplace-readable `tokenURI`, stores the manifest Keccak-256 digest and protocol provenance, increments `totalSupply`, and emits the complete `MandalaMinted` record. There is no function that can replace a token URI or provenance after mint.
 
-Paid minting must remain disabled in the Composer because the deployed contract calls `ownerOf(tokenId)` to test whether an unused token exists. OpenZeppelin ERC-721 reverts with `ERC721NonexistentToken` for that exact case, so every new-token mint reverts before `_safeMint`. The corrected source uses `_ownerOf(tokenId) == address(0)`. It must be deployed and its replacement Base mainnet address verified before the UI enables transaction submission.
+Token IDs are deterministic verification keys: `uint256(keccak256(abi.encodePacked(recipient, contentHash)))`. The contract enforces this derivation, preventing arbitrary token-ID squatting and ensuring one recipient cannot mint the same canonical manifest twice.
 
-The corrected replacement source also exposes an `ADMIN_ROLE`-restricted `airdrop` function. It lets an administrator pay the gas to mint directly to a recipient while recording the same immutable content hash, protocol version, epoch, timestamp, and `MandalaMinted` event as the public mint path. The recipient does not submit a transaction or pay gas.
+The contract exposes an `ADMIN_ROLE`-restricted `airdrop(recipient, tokenId, contentHash, protocolVersion, metadataURI)` function. It lets an administrator pay the gas to mint directly to a recipient while recording the same immutable artifact and provenance as the public mint path. The recipient does not submit a transaction or pay gas.
 
 All ETH collected by public paid mints is withdrawn exclusively to the immutable House wallet `0x6736d2eA9807297F0e56967361B9410854B86a5f`. An administrator may trigger withdrawal but cannot redirect the destination. Admin airdrops are nonpayable and add no mint revenue.

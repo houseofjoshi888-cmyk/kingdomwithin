@@ -2,8 +2,11 @@ type Mandala @entity {
   id: ID! # Token ID
   contentHash: Bytes!
   protocolVersion: String!
+  metadataURI: String!
   epochId: BigInt!
   minter: Bytes!
+  recipient: Bytes!
+  price: BigInt!
   timestamp: BigInt!
 }
 

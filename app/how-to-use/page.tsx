@@ -6,7 +6,7 @@ const steps = [
   ["Audit the signature", "Read every mapped glyph and verify the Numerical Signature, symmetry, phase, golden scale, hue, and SHA-256 protocol seal."],
   ["Generate the form", "Select Generate Mandala. The live motion is an inspection layer; it does not change the underlying deterministic geometry."],
   ["Capture the heirloom", "Export SVG for the canonical resolution-independent artifact. PNG freezes the canvas at protocol time t=0 as a convenience rendition."],
-  ["Package and mint", "Pin the artifact, insert its final IPFS URI into the manifest, and compute its Keccak-256 digest. Transaction submission activates after the corrected contract deployment is verified."],
+  ["Package and mint", "Connect a Base mainnet wallet and select Mint Canonical NFT. Sign the artifact authorization, let the instrument pin the SVG and final manifest to public IPFS, then confirm the exact epoch price in your wallet."],
 ] as const;
 
 export default function HowToUse() {
@@ -37,7 +37,7 @@ export default function HowToUse() {
       </section>
 
       <section className="guide-proof">
-        <div><p className="eyebrow"><span>07</span> VERIFY THE PROOF</p><h2>What must match.</h2></div>
+        <div><p className="eyebrow"><span>07</span> VERIFY THE PROOF</p><h2>What must match.</h2><Link className="guide-back" href="/verify">OPEN TOKEN VERIFIER <span>↗</span></Link></div>
         <dl>
           <div><dt>Normalized text</dt><dd>Exact mapped glyph stream</dd></div>
           <div><dt>Mapping mode</dt><dd>Explicit protocol identifier</dd></div>
