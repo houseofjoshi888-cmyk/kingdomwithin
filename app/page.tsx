@@ -128,8 +128,8 @@ function MandalaCanvas({ data, active }: { data: ReturnType<typeof analyzeVerse>
 }
 
 export default function Home() {
-  const [verse, setVerse] = useState(VERSES[0].hebrew);
-  const [query, setQuery] = useState(VERSES[0].ref);
+  const [verse, setVerse] = useState<string>(VERSES[0].hebrew);
+  const [query, setQuery] = useState<string>(VERSES[0].ref);
   const [mode, setMode] = useState<MappingMode>("ancient");
   const [customMap, setCustomMap] = useState<Record<string, number>>({});
   const [customFile, setCustomFile] = useState("");
