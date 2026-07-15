@@ -390,7 +390,7 @@ export default function Home() {
           <div><span>PROVENANCE</span><b>IMMUTABLE</b><small>HASH · VERSION · EPOCH · TIME</small></div>
           <div><span>MINT STATUS</span><b>READ ONLY</b><small>CORRECTED REDEPLOY REQUIRED</small></div>
         </div>
-        {showMint && <div className="mint-notice"><span>BASE MAINNET CONTRACT FOUND</span><p>The deployed `ownerOf(tokenId) == address(0)` guard reverts for every unused token ID. Replace it with `_ownerOf(tokenId) == address(0)` and redeploy before enabling paid mint transactions.</p><a href={MALKUTA_ENGINE_EXPLORER_URL} target="_blank" rel="noreferrer">VIEW ON BASESCAN ↗</a></div>}
+        {showMint && <div className="mint-notice"><span>CORRECTED SOURCE READY</span><p>The repository now uses the safe `_ownerOf(tokenId) == address(0)` guard. The current Base mainnet deployment is immutable and still contains the broken guard, so paid minting remains disabled until the corrected contract is redeployed.</p><a href={MALKUTA_ENGINE_EXPLORER_URL} target="_blank" rel="noreferrer">VIEW CURRENT CONTRACT ↗</a></div>}
       </section>
 
       <footer><div className="brand footer-brand"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span></div><p>THE SCRIPTURE IS THE SEED.<br />THE PROTOCOL IS THE PROOF.</p><Link href="/how-to-use">HOW TO USE ↗</Link></footer>

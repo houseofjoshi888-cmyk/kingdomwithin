@@ -43,7 +43,7 @@ contract MalkutaEngine is ERC721, AccessControl {
     function mint(uint256 tokenId, bytes32 _contentHash, string memory _version) external payable {
         require(epochs[currentEpochId].isActive, "Current epoch is closed.");
         require(msg.value >= epochs[currentEpochId].mintPrice, "Insufficient payment for minting.");
-        require(ownerOf(tokenId) == address(0), "Token ID already exists.");
+        require(_ownerOf(tokenId) == address(0), "Token ID already exists.");
 
         _safeMint(msg.sender, tokenId);
 

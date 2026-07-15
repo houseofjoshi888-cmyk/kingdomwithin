@@ -4,7 +4,7 @@ import test from "node:test";
 
 const source = await readFile(new URL("../contracts/MalkutaEngine.sol", import.meta.url), "utf8");
 
-test("the deployed contract source stores epoch provenance during safe mint", () => {
+test("the corrected contract source stores epoch provenance during safe mint", () => {
   assert.match(source, /_safeMint\(msg\.sender, tokenId\)/);
   assert.match(source, /tokenProvenance\[tokenId\]\s*=\s*Provenance/);
   assert.match(source, /epochId:\s*currentEpochId/);
@@ -12,14 +12,14 @@ test("the deployed contract source stores epoch provenance during safe mint", ()
   assert.match(source, /emit MandalaMinted\(tokenId, currentEpochId, _contentHash\)/);
 });
 
-test("the deployed contract exposes no provenance override", () => {
+test("the corrected contract exposes no provenance override", () => {
   assert.doesNotMatch(source, /setContentHash/);
   assert.doesNotMatch(source, /setProvenance/);
 });
 
-test("the deployed source contains the confirmed mint-blocking ownerOf guard", () => {
-  assert.match(source, /ownerOf\(tokenId\)\s*==\s*address\(0\)/);
-  assert.doesNotMatch(source, /_ownerOf\(tokenId\)\s*==\s*address\(0\)/);
+test("the corrected source checks unused token IDs without reverting", () => {
+  assert.match(source, /_ownerOf\(tokenId\)\s*==\s*address\(0\)/);
+  assert.doesNotMatch(source, /require\(ownerOf\(tokenId\)/);
 });
 
 test("Genesis epoch and role-based administration match the deployment", () => {
