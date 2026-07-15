@@ -187,9 +187,9 @@ export default function Home() {
   return (
     <main>
       <header className="topbar">
-        <a className="brand" href="#composer" aria-label="Malkuta home">
-          <span className="brand-mark">M</span>
-          <span><strong>MALKUTA</strong><small>FREQUENCY COMPOSER</small></span>
+        <a className="brand" href="#composer" aria-label="Kingdom Within home">
+          <span className="brand-mark">K</span>
+          <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </a>
         <div className="status-line"><span className="pulse" /> PROTOCOL V1.0 <i /> BASE READY</div>
         <button className="wallet-button" onClick={connectWallet}>{wallet || "CONNECT WALLET"}<span>↗</span></button>
@@ -198,7 +198,7 @@ export default function Home() {
       <section className="intro" id="composer">
         <div>
           <p className="eyebrow"><span>01</span> SCRIPTURE → SIGNAL → FORM</p>
-          <h1>Sacred text,<br /><em>made measurable.</em></h1>
+          <h1>The kingdom,<br /><em>made visible.</em></h1>
         </div>
         <p className="intro-copy">A precision instrument that translates Hebrew scripture into verifiable harmonic frequency and deterministic geometric form.</p>
       </section>
@@ -304,7 +304,7 @@ export default function Home() {
         {showMint && <div className="mint-notice"><span>CONTRACT READY</span><p>Wallet connection is available. Add the deployed JoshiHouse contract address to activate on-chain mint submission.</p><button onClick={connectWallet}>{wallet || "CONNECT WALLET"}</button></div>}
       </section>
 
-      <footer><div className="brand footer-brand"><span className="brand-mark">M</span><span><strong>MALKUTA</strong><small>FREQUENCY COMPOSER</small></span></div><p>THE SCRIPTURE IS THE SEED.<br />THE PROTOCOL IS THE PROOF.</p><span>© 2026 HOUSE OF JOSHI</span></footer>
+      <footer><div className="brand footer-brand"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span></div><p>THE SCRIPTURE IS THE SEED.<br />THE PROTOCOL IS THE PROOF.</p><span>© 2026 HOUSE OF JOSHI</span></footer>
     </main>
   );
 }

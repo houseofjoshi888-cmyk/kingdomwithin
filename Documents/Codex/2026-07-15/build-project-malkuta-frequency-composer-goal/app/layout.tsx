@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Malkuta Frequency Composer",
-  description: "A deterministic instrument translating Hebrew scripture into verifiable harmonic frequency and geometric form.",
+  title: "Kingdom Within — Malkuta Protocol",
+  description: "A deterministic scripture geometry instrument translating sacred text into verifiable frequency, color, and form.",
 };
 
 export default function RootLayout({
