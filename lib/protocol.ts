@@ -7,8 +7,11 @@ export const MASTER_MAP = [
   ["ק", 100], ["ר", 200], ["ש", 300], ["ת", 400],
 ] as const;
 
-export const LATIN_MAP = Object.fromEntries(
-  Array.from({ length: 26 }, (_, index) => [String.fromCharCode(65 + index), index + 1]),
+export const ROOT60_MAP = Object.fromEntries(
+  Array.from("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", (character) => [
+    character,
+    character.charCodeAt(0) % 60,
+  ]),
 ) as Record<string, number>;
 
 export const TEST_INPUTS = [
@@ -17,29 +20,47 @@ export const TEST_INPUTS = [
   { phrase: "In the beginning was the Word", role: "The Foundation" },
 ] as const;
 
-export const PROTOCOL_VERSION = "1.0.0";
+export const PROTOCOL_VERSION = "2.0.0";
 export const PHI = 1.618;
 
 const VALUE_MAP = Object.fromEntries(MASTER_MAP) as Record<string, number>;
 const FINAL_FORMS: Record<string, string> = { ך: "כ", ם: "מ", ן: "נ", ף: "פ", ץ: "צ" };
 
-export type MappingMode = "ancient" | "latin" | "custom";
+export type MappingMode = "ancient" | "root60" | "custom";
 
 export const MAPPING_MODE_IDS: Record<MappingMode, string> = {
   ancient: "aramaic_standard",
-  latin: "latin_alpha",
+  root60: "root_60",
   custom: "custom",
 };
+
+export function calculateRoot60(text: string) {
+  const normalized = text.normalize("NFKD").replace(/[^a-zA-Z0-9]/g, "");
+  const sum = Array.from(normalized).reduce(
+    (total, character) => total + (character.charCodeAt(0) % 60),
+    0,
+  );
+  const alignmentConstant = sum % 360;
+  return {
+    normalized,
+    sum,
+    alignmentConstant,
+    metadata: {
+      mode: "Root-60" as const,
+      constant: alignmentConstant,
+    },
+  };
+}
 
 function canonicalGlyph(raw: string, mode: MappingMode) {
   const decomposed = raw.normalize("NFKD");
   if (mode === "ancient") return FINAL_FORMS[decomposed] ?? decomposed;
-  if (mode === "latin") return decomposed.toUpperCase();
   return decomposed;
 }
 
 export function normalizeText(text: string, mode: MappingMode, customMap: Record<string, number> = {}) {
-  const activeMap = mode === "ancient" ? VALUE_MAP : mode === "latin" ? LATIN_MAP : customMap;
+  if (mode === "root60") return calculateRoot60(text).normalized;
+  const activeMap = mode === "ancient" ? VALUE_MAP : customMap;
   return Array.from(text.normalize("NFKD"))
     .filter((character) => /\p{L}/u.test(character))
     .map((character) => canonicalGlyph(character, mode))
@@ -48,24 +69,28 @@ export function normalizeText(text: string, mode: MappingMode, customMap: Record
 }
 
 export function analyzeVerse(text: string, mode: MappingMode, customMap: Record<string, number>) {
-  const activeMap = mode === "ancient" ? VALUE_MAP : mode === "latin" ? LATIN_MAP : customMap;
+  const activeMap = mode === "ancient" ? VALUE_MAP : mode === "root60" ? ROOT60_MAP : customMap;
   const decomposedText = text.normalize("NFKD");
-  const letters = Array.from(decomposedText).flatMap((raw) => {
+  const canonicalText = mode === "root60" ? decomposedText.replace(/[^a-zA-Z0-9]/g, "") : decomposedText;
+  const letters = Array.from(canonicalText).flatMap((raw) => {
+    if (mode === "root60") return [{ raw, normalized: raw, value: raw.charCodeAt(0) % 60 }];
     if (!/\p{L}/u.test(raw)) return [];
     const normalized = canonicalGlyph(raw, mode);
     const value = activeMap[normalized];
     return value ? [{ raw, normalized, value }] : [];
   });
-  const ignored = Array.from(decomposedText).filter((char) => /\p{L}/u.test(char) && !activeMap[canonicalGlyph(char, mode)]);
+  const ignored = mode === "root60" ? [] : Array.from(decomposedText).filter((char) => /\p{L}/u.test(char) && !Object.hasOwn(activeMap, canonicalGlyph(char, mode)));
   const total = letters.reduce((sum, item) => sum + item.value, 0);
-  const maxMapValue = Math.max(0, ...Object.values(activeMap));
+  const maxMapValue = mode === "root60" ? 59 : Math.max(0, ...Object.values(activeMap));
   const maxPossibleSum = letters.length * maxMapValue;
   const symmetry = total ? (total % 12) + 3 : 0;
   const phase = total ? total % 360 : 0;
   const scale = maxPossibleSum ? (total / maxPossibleSum) * PHI : 0;
   return {
-    normalizedText: letters.map(({ normalized }) => normalized).join(""),
+    normalizedText: canonicalText.split("").filter((character) => mode === "root60" || Object.hasOwn(activeMap, canonicalGlyph(character, mode))).map((character) => canonicalGlyph(character, mode)).join(""),
     mappingMode: MAPPING_MODE_IDS[mode],
+    alignmentMode: mode === "root60" ? "Root-60" : null,
+    alignmentConstant: mode === "root60" ? phase : null,
     protocolVersion: PROTOCOL_VERSION,
     letters,
     ignored,
@@ -90,6 +115,7 @@ export function geometryParams(data: Analysis) {
     rotation: data.phase,
     scale: Number(data.scale.toFixed(12)),
     hue: data.hue,
+    alignmentConstant: data.alignmentConstant,
   } as const;
 }
 
@@ -114,6 +140,10 @@ export async function createCanonicalManifest(sourceText: string, imageUri: stri
       mapping_mode: data.mappingMode,
       normalized_text: data.normalizedText,
       canonical_sha256: protocolSeal,
+      ...(data.alignmentMode ? {
+        alignment_mode: data.alignmentMode,
+        alignment_constant: data.alignmentConstant,
+      } : {}),
     },
     attributes: [
       { trait_type: "Source Text", value: sourceText },
@@ -125,6 +155,10 @@ export async function createCanonicalManifest(sourceText: string, imageUri: stri
       { trait_type: "Scale (Phi)", value: Number(data.scale.toFixed(12)) },
       { trait_type: "Color (Hue)", value: data.hue },
       { trait_type: "Canonical Seal (SHA-256)", value: protocolSeal },
+      ...(data.alignmentMode ? [
+        { trait_type: "Alignment Mode", value: data.alignmentMode },
+        { trait_type: "Alignment Constant", value: data.alignmentConstant },
+      ] : []),
     ],
   };
 }

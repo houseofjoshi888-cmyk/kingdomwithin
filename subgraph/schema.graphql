@@ -1,0 +1,14 @@
+type Mandala @entity {
+  id: ID! # Token ID
+  contentHash: Bytes!
+  protocolVersion: String!
+  epochId: BigInt!
+  minter: Bytes!
+  timestamp: BigInt!
+}
+
+type EpochStats @entity {
+  id: ID! # Epoch ID
+  totalMinted: BigInt!
+  totalVolume: BigInt!
+}

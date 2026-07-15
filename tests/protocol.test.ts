@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   analyzeVerse,
+  calculateRoot60,
   canonicalProtocolPayload,
   createCanonicalManifest,
   MASTER_MAP,
@@ -18,14 +19,14 @@ test("the immutable historical MASTER_MAP remains 22 glyphs from 1 through 400",
 });
 
 const cases = [
-  { phrase: "Malkuta", total: 79, symmetry: 10, phase: 79, scale: 0.7023186813186814 },
-  { phrase: "The Kingdom is Within", total: 217, symmetry: 4, phase: 217, scale: 0.7502264957264958 },
-  { phrase: "In the beginning was the Word", total: 273, symmetry: 12, phase: 273, scale: 0.707875 },
+  { phrase: "Malkuta", total: 299, symmetry: 14, phase: 299, scale: 1.1713849878934626 },
+  { phrase: "The Kingdom is Within", total: 769, symmetry: 4, phase: 49, scale: 1.17160263653484 },
+  { phrase: "In the beginning was the Word", total: 1073, symmetry: 8, phase: 353, scale: 1.2260692090395482 },
 ];
 
 for (const expected of cases) {
-  test(`Latin-Alpha signature remains stable: ${expected.phrase}`, () => {
-    const result = analyzeVerse(expected.phrase, "latin", {});
+  test(`Root-60 signature remains stable: ${expected.phrase}`, () => {
+    const result = analyzeVerse(expected.phrase, "root60", {});
     assert.equal(result.total, expected.total);
     assert.equal(result.symmetry, expected.symmetry);
     assert.equal(result.phase, expected.phase);
@@ -36,7 +37,17 @@ for (const expected of cases) {
 
 test("NFKD normalization strips separators, punctuation, niqqud, and combining marks", () => {
   assert.equal(normalizeText("  מַלְכוּת! ", "ancient"), "מלכות");
-  assert.equal(normalizeText("Málkuta #001", "latin"), "MALKUTA");
+  assert.equal(normalizeText("Málkuta #001", "root60"), "Malkuta001");
+});
+
+test("Root-60 uses the ratified charCode modulo 60 alignment protocol", () => {
+  assert.deepEqual(calculateRoot60("Malkuta"), {
+    normalized: "Malkuta",
+    sum: 299,
+    alignmentConstant: 299,
+    metadata: { mode: "Root-60", constant: 299 },
+  });
+  assert.equal(calculateRoot60("x").sum, 0);
 });
 
 test("final Hebrew forms normalize to base MASTER_MAP glyphs", () => {
@@ -44,22 +55,24 @@ test("final Hebrew forms normalize to base MASTER_MAP glyphs", () => {
 });
 
 test("canonical payload and SHA-256 seal are stable", async () => {
-  const data = analyzeVerse("Malkuta", "latin", {});
+  const data = analyzeVerse("Malkuta", "root60", {});
   assert.equal(
     canonicalProtocolPayload(data),
-    'MALKUTAlatin_alpha1.0.0{"numericalSignature":79,"symmetry":10,"rotation":79,"scale":0.702318681319,"hue":79}',
+    'Malkutaroot_602.0.0{"numericalSignature":299,"symmetry":14,"rotation":299,"scale":1.171384987893,"hue":299,"alignmentConstant":299}',
   );
   assert.equal((await sha256Hex(canonicalProtocolPayload(data))).length, 66);
 });
 
 test("manifest and SVG embed the same audited protocol values", async () => {
-  const data = analyzeVerse("Malkuta", "latin", {});
+  const data = analyzeVerse("Malkuta", "root60", {});
   const manifest = await createCanonicalManifest("Malkuta", "ipfs://IMAGE_CID", data);
-  assert.equal(manifest.protocol.mapping_mode, "latin_alpha");
-  assert.equal(manifest.attributes[3].value, 79);
+  assert.equal(manifest.protocol.mapping_mode, "root_60");
+  assert.equal(manifest.protocol.alignment_mode, "Root-60");
+  assert.equal(manifest.protocol.alignment_constant, 299);
+  assert.equal(manifest.attributes[3].value, 299);
   const svg = renderCanonicalSvg(data);
   assert.match(svg, /<svg/);
-  assert.match(svg, /"numericalSignature":79/);
+  assert.match(svg, /"numericalSignature":299/);
   assert.doesNotMatch(svg, /Math\.random|Date\.now/);
   assert.match(manifestKeccak256(manifest), /^0x[0-9a-f]{64}$/);
 });

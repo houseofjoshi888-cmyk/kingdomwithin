@@ -221,7 +221,7 @@ export default function Home() {
     setMode(nextMode);
     setActive(false);
     setQuery("");
-    if (nextMode === "latin") setVerse("IN THE BEGINNING");
+    if (nextMode === "root60") setVerse("In the beginning was the Word");
     if (nextMode === "ancient") { setVerse(VERSES[0].hebrew); setQuery(VERSES[0].ref); }
     if (nextMode === "custom") setVerse("");
   };
@@ -261,7 +261,7 @@ export default function Home() {
           <span className="brand-mark">K</span>
           <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </a>
-        <div className="status-line"><span className="pulse" /> PROTOCOL V1.0 <i /> BASE READY</div>
+        <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> BASE READY</div>
         <div className="top-actions"><Link href="/how-to-use">HOW TO USE</Link><button className="wallet-button" onClick={connectWallet}>{wallet || "CONNECT WALLET"}<span>↗</span></button></div>
       </header>
 
@@ -279,14 +279,14 @@ export default function Home() {
           <label htmlFor="mapping-mode">Mapping mode</label>
           <select id="mapping-mode" className="mode-select" value={mode} onChange={(event) => changeMode(event.target.value as MappingMode)}>
             <option value="ancient">A — Ancient Hebrew / Aramaic (Standard)</option>
-            <option value="latin">B — Universal / Latin Alpha</option>
+            <option value="root60">B — Root-60 / Sexagesimal</option>
             <option value="custom">C — Custom JSON Mapping</option>
           </select>
-          <div className={`mode-badge ${mode}`}><span>{mode === "ancient" ? "HISTORICAL BASELINE" : mode === "latin" ? "UNIVERSAL A–Z" : "USER-SUPPLIED PROTOCOL"}</span><b>{mode === "ancient" ? "22 GLYPHS · 1–400" : mode === "latin" ? "26 GLYPHS · 1–26" : `${analysis.mapEntries.length} GLYPHS`}</b></div>
-          {mode === "latin" && <div className="test-inputs">
-            <div className="test-label"><span>OFFICIAL TEST INPUTS</span><small>LATIN-ALPHA / LOCKED</small></div>
+          <div className={`mode-badge ${mode}`}><span>{mode === "ancient" ? "HISTORICAL BASELINE" : mode === "root60" ? "SEXAGESIMAL ALIGNMENT" : "USER-SUPPLIED PROTOCOL"}</span><b>{mode === "ancient" ? "22 GLYPHS · 1–400" : mode === "root60" ? "ASCII ALPHANUMERIC · 0–59" : `${analysis.mapEntries.length} GLYPHS`}</b></div>
+          {mode === "root60" && <div className="test-inputs">
+            <div className="test-label"><span>OFFICIAL TEST INPUTS</span><small>ROOT-60 / LOCKED</small></div>
             {TEST_INPUTS.map((item) => {
-              const expected = analyzeVerse(item.phrase, "latin", {});
+              const expected = analyzeVerse(item.phrase, "root60", {});
               return <button key={item.phrase} className={verse === item.phrase ? "selected" : ""} onClick={() => { setVerse(item.phrase); setActive(true); }}>
                 <span><b>{item.phrase}</b><small>{item.role}</small></span><em>Σ {expected.total}</em>
               </button>;
@@ -312,7 +312,7 @@ export default function Home() {
           </>}
           <label htmlFor="verse-text">{mode === "ancient" ? "Hebrew source" : "Source text"}</label>
           <textarea id="verse-text" dir={mode === "ancient" ? "rtl" : "ltr"} value={verse} onChange={(e) => { setVerse(e.target.value); setActive(false); }} spellCheck={false} placeholder={mode === "custom" && !analysis.mapEntries.length ? "Upload a mapping, then enter source text…" : "Enter source text…"} />
-          <div className="input-meta"><span>{analysis.letters.length} mapped glyphs</span><span>UTF–8 / HEB</span></div>
+          <div className="input-meta"><span>{analysis.letters.length} mapped glyphs</span><span>{mode === "ancient" ? "UTF–8 / HEB" : mode === "root60" ? "NFKD / BASE–60" : "CUSTOM MAP"}</span></div>
           <button className="generate" onClick={() => setActive(true)} disabled={!analysis.total}><span>GENERATE MANDALA</span><b>↗</b></button>
         </div>
 
@@ -356,16 +356,17 @@ export default function Home() {
               <p>Σ mod 360 → {analysis.phase.toFixed(0)}° phase</p>
               <div><span>COLOR FREQUENCY</span><b className="color-value"><i style={{ backgroundColor: `hsl(${analysis.hue}, 72%, 58%)` }} />{analysis.hue.toFixed(0)}° HSL</b></div>
               <p>Σ mod 360 → hue {analysis.hue.toFixed(0)}°</p>
+              {analysis.alignmentMode && <><div><span>ALIGNMENT CONSTANT</span><b>{analysis.alignmentConstant}</b></div><p>Root-60 verification key → Σ mod 360</p></>}
               <div className="result-row"><span>GOLDEN SCALE (K)</span><b>{analysis.scale.toFixed(5)}</b></div>
               <p>(Σ ÷ {analysis.maxPossibleSum.toLocaleString() || "MAX"}) × 1.618</p>
             </div>
             <div className="verification"><span>✓</span><div><b>REPRODUCIBLE OUTPUT</b><small>Identical source + protocol = identical form.</small></div></div>
             {protocolSeal && <div className="seal"><span>SHA–256 PROTOCOL SEAL</span><code>{protocolSeal}</code></div>}
           </> : <>
-            <div className="audit-title"><span>{mode === "ancient" ? "MASTER_MAP" : mode === "latin" ? "LATIN_ALPHA" : "CUSTOM_MAP"}</span><small>1–{analysis.maxMapValue || "—"}</small></div>
-            <p className="protocol-copy">{mode === "ancient" ? "Standard Aramaic/Hebrew alphabetic numerals. Hardcoded and immutable in Composer Protocol v1. Final letterforms normalize to their base letter." : mode === "latin" ? "Universal alphabetic mapping. Latin letters normalize to uppercase and resolve from A=1 through Z=26." : "User-supplied mapping validated from local JSON. It is deterministic for this mapping file, but is not the Malkuta historical baseline."}</p>
+            <div className="audit-title"><span>{mode === "ancient" ? "MASTER_MAP" : mode === "root60" ? "ROOT_60" : "CUSTOM_MAP"}</span><small>{mode === "root60" ? "0–59" : `1–${analysis.maxMapValue || "—"}`}</small></div>
+            <p className="protocol-copy">{mode === "ancient" ? "Standard Aramaic/Hebrew alphabetic numerals. Hardcoded and immutable in Composer Protocol v2. Final letterforms normalize to their base letter." : mode === "root60" ? "NFKD-normalized ASCII alphanumeric characters map through charCode % 60. Case is preserved; the verification key is Sum % 360." : "User-supplied mapping validated from local JSON. It is deterministic for this mapping file, but is not the Malkuta historical baseline."}</p>
             <div className="map-grid" dir={mode === "ancient" ? "rtl" : "ltr"}>{analysis.mapEntries.map(([letter, value]) => <div key={letter}><b>{letter}</b><span>{value}</span></div>)}</div>
-            <div className="protocol-note"><b>UNIVERSAL HARMONIC BRIDGE</b><span>No random seed. Root-60 remains specification-pending until its exact character matrix and alignment formula are ratified.</span></div>
+            <div className="protocol-note"><b>UNIVERSAL HARMONIC BRIDGE</b><span>No random seed. Every Root-60 value and alignment constant is shown in the audit trace.</span></div>
           </>}
         </aside>
       </section>

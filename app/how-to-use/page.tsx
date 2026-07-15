@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const steps = [
-  ["Choose a mapping", "Use the immutable Aramaic/Hebrew Standard, the current Latin bridge, or upload a validated custom JSON mapping. Root-60 will activate only after its exact matrix is ratified."],
+  ["Choose a mapping", "Use the immutable Aramaic/Hebrew Standard, the universal Root-60 sexagesimal bridge, or upload a validated custom JSON mapping."],
   ["Enter the source", "Paste the text or choose a test input. The instrument applies NFKD normalization, removes non-letter marks, and retains only mapped glyphs."],
   ["Audit the signature", "Read every mapped glyph and verify the Numerical Signature, symmetry, phase, golden scale, hue, and SHA-256 protocol seal."],
   ["Generate the form", "Select Generate Mandala. The live motion is an inspection layer; it does not change the underlying deterministic geometry."],
@@ -17,7 +17,7 @@ export default function HowToUse() {
           <span className="brand-mark">K</span>
           <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </Link>
-        <div className="status-line"><span className="pulse" /> PROTOCOL V1.0 <i /> GUIDE</div>
+        <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> GUIDE</div>
         <Link className="guide-back" href="/#composer">OPEN INSTRUMENT <span>↗</span></Link>
       </header>
 

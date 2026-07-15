@@ -1,22 +1,21 @@
 # Malkuta Frequency Protocol
 
-Protocol version: `1.0.0`
+Protocol version: `2.0.0`
 
 This document is the constitution for deterministic calculation, artifact generation, metadata, and mint provenance. Every conforming implementation must produce byte-for-byte equivalent canonical inputs from the same source, mapping, and protocol version.
 
 ## 1. Normalization
 
 1. Apply JavaScript `String.prototype.normalize("NFKD")` to the source text.
-2. Remove spaces, punctuation, numerals, niqqud, combining marks, and every other non-letter character.
-3. Retain only letters present in the selected mapping.
-4. In `aramaic_standard`, normalize Hebrew final forms to their base glyph: `ך→כ`, `ם→מ`, `ן→נ`, `ף→פ`, `ץ→צ`.
-5. In `latin_alpha`, uppercase letters after NFKD decomposition.
-6. Preserve the resulting mapped glyph stream as `normalized_text`.
+2. In `aramaic_standard`, remove every non-letter character, retain only mapped Hebrew glyphs, and normalize final forms: `ך→כ`, `ם→מ`, `ן→נ`, `ף→פ`, `ץ→צ`.
+3. In `root_60`, remove every character except ASCII `a-z`, `A-Z`, and `0-9`. Case is preserved exactly.
+4. In `custom`, remove every non-letter character and retain only glyphs present in the uploaded mapping.
+5. Preserve the resulting mapped character stream as `normalized_text`.
 
 ## 2. Mapping identifiers
 
 - `aramaic_standard`: immutable 22-glyph Aramaic/Hebrew `MASTER_MAP`, values 1–400.
-- `latin_alpha`: Latin A=1 through Z=26.
+- `root_60`: each normalized ASCII alphanumeric character maps to `character.charCodeAt(0) % 60`, producing values 0–59.
 - `custom`: the exact uploaded mapping. A production mint must additionally pin and identify the custom mapping digest.
 
 The selected identifier must be stored as `mapping_mode` in metadata. Mapping choice must never be inferred.
@@ -30,6 +29,7 @@ Let `Sum` be the sum of mapped glyph values and let `Max_Possible_Sum` be the nu
 - Rotation: `Sum % 360` degrees
 - Scale: `(Sum / Max_Possible_Sum) * 1.618`
 - Hue: `Sum % 360` on the HSL wheel
+- Root-60 Alignment Constant: `Sum % 360`
 
 No random seed, entropy source, timestamp, wallet address, or token ID may affect the geometry.
 
@@ -41,10 +41,10 @@ The protocol seal is:
 SHA256(normalizedText + mappingMode + protocolVersion + geometryParams)
 ```
 
-For version `1.0.0`, `geometryParams` is compact JSON with this exact key order:
+For version `2.0.0`, `geometryParams` is compact JSON with this exact key order:
 
 ```json
-{"numericalSignature":0,"symmetry":0,"rotation":0,"scale":0,"hue":0}
+{"numericalSignature":0,"symmetry":0,"rotation":0,"scale":0,"hue":0,"alignmentConstant":null}
 ```
 
 `scale` is rounded to 12 decimal places before serialization. SHA-256 is emitted as a lowercase `0x`-prefixed 32-byte hex value.
@@ -57,7 +57,7 @@ The SVG must embed protocol version, mapping mode, normalized text, and geometry
 
 ## 6. Manifest and manifest digest
 
-The manifest stores the image URI, source text, protocol version, explicit mapping identifier, numerical signature, symmetry, rotation, scale, hue, and canonical SHA-256 seal.
+The manifest stores the image URI, source text, protocol version, explicit mapping identifier, numerical signature, symmetry, rotation, scale, hue, and canonical SHA-256 seal. Root-60 manifests additionally store `"alignment_mode": "Root-60"` and the calculated `alignment_constant`.
 
 After the image is pinned and its final `ipfs://` URI is inserted, serialize the manifest once with `JSON.stringify`. Compute `keccak256` over the UTF-8 bytes of that final JSON string. The resulting 32-byte value is the `contentHash` submitted to `MalkutaEngine.mint`.
 
@@ -88,9 +88,9 @@ The real-time dashboard should index `MandalaMinted` events with a subgraph or e
 
 ## 9. Universal Harmonic Bridge
 
-The instrument is mapping-agnostic, but every mapping remains explicit and versioned. `aramaic_standard` is the immutable historical baseline, `latin_alpha` is the current Latin bridge, and custom maps are user-supplied and digest-bound.
+The instrument is mapping-agnostic, but every mapping remains explicit and versioned. `aramaic_standard` is the immutable historical baseline, `root_60` is the universal sexagesimal bridge, and custom maps are user-supplied and digest-bound.
 
-A proposed sexagesimal `root_base60` mode is reserved. Base 60 alone does not define how arbitrary characters map to numbers or how an alignment constant is calculated. The exact glyph set, normalization, value matrix, unknown-character rule, alignment formula, and locked test vectors must be ratified before implementation. Until then this mode cannot be minted under protocol `1.0.0`.
+Root-60 is defined by this exact function after normalization: add `normalized.charCodeAt(i) % 60` for every character. The alignment constant is `Sum % 360`. No case conversion, locale rule, transliteration, or alternative Unicode mapping is permitted in protocol `2.0.0`.
 
 ## 10. Deployment gate
 
