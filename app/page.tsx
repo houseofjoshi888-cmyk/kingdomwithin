@@ -1,7 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { analyzeVerse, MASTER_MAP, TEST_INPUTS, type MappingMode } from "../lib/protocol";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import {
+  analyzeVerse,
+  canonicalProtocolPayload,
+  createCanonicalManifest,
+  manifestKeccak256,
+  renderCanonicalSvg,
+  sha256Hex,
+  TEST_INPUTS,
+  type MappingMode,
+} from "../lib/protocol";
 
 const VERSES = [
   { ref: "Genesis 1:1", hebrew: "בראשית ברא אלהים את השמים ואת הארץ" },
@@ -11,7 +20,9 @@ const VERSES = [
   { ref: "Psalm 119:105", hebrew: "נר לרגלי דברך ואור לנתיבתי" },
 ] as const;
 
-function MandalaCanvas({ data, active }: { data: ReturnType<typeof analyzeVerse>; active: boolean }) {
+type MandalaCapture = { captureCanonical: () => string | null };
+
+const MandalaCanvas = forwardRef<MandalaCapture, { data: ReturnType<typeof analyzeVerse>; active: boolean }>(function MandalaCanvas({ data, active }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointer = useRef({ x: 0, y: 0 });
 
@@ -114,6 +125,19 @@ function MandalaCanvas({ data, active }: { data: ReturnType<typeof analyzeVerse>
     return () => cancelAnimationFrame(frame);
   }, [draw]);
 
+  useImperativeHandle(ref, () => ({
+    captureCanonical: () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return null;
+      const previousPointer = pointer.current;
+      pointer.current = { x: 0, y: 0 };
+      draw(0);
+      const dataUrl = canvas.toDataURL("image/png", 1.0);
+      pointer.current = previousPointer;
+      return dataUrl;
+    },
+  }), [draw]);
+
   return (
     <canvas
       ref={canvasRef}
@@ -125,7 +149,7 @@ function MandalaCanvas({ data, active }: { data: ReturnType<typeof analyzeVerse>
       onPointerLeave={() => { pointer.current = { x: 0, y: 0 }; }}
     />
   );
-}
+});
 
 export default function Home() {
   const [verse, setVerse] = useState<string>(VERSES[0].hebrew);
@@ -138,7 +162,52 @@ export default function Home() {
   const [tab, setTab] = useState<"audit" | "protocol">("audit");
   const [wallet, setWallet] = useState("");
   const [showMint, setShowMint] = useState(false);
+  const [protocolSeal, setProtocolSeal] = useState("");
+  const [artifactStatus, setArtifactStatus] = useState("READY FOR CANONICAL CAPTURE");
+  const [manifestDigest, setManifestDigest] = useState("");
+  const mandalaRef = useRef<MandalaCapture>(null);
   const analysis = useMemo(() => analyzeVerse(verse, mode, customMap), [verse, mode, customMap]);
+
+  useEffect(() => {
+    let current = true;
+    const calculateSeal = async () => {
+      const seal = analysis.total ? await sha256Hex(canonicalProtocolPayload(analysis)) : "";
+      if (current) setProtocolSeal(seal);
+    };
+    void calculateSeal();
+    return () => { current = false; };
+  }, [analysis]);
+
+  const downloadText = (filename: string, type: string, contents: string) => {
+    const url = URL.createObjectURL(new Blob([contents], { type }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportSvg = () => {
+    downloadText(`malkuta-${analysis.total}.svg`, "image/svg+xml", renderCanonicalSvg(analysis));
+    setArtifactStatus("CANONICAL SVG CAPTURED · T=0");
+  };
+
+  const exportPng = () => {
+    const dataUrl = mandalaRef.current?.captureCanonical();
+    if (!dataUrl) return;
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `malkuta-${analysis.total}.png`;
+    link.click();
+    setArtifactStatus("PNG RENDITION CAPTURED · T=0");
+  };
+
+  const exportManifest = async () => {
+    const manifest = await createCanonicalManifest(verse, "ipfs://IMAGE_CID_REQUIRED_BEFORE_MINT", analysis);
+    setManifestDigest(manifestKeccak256(manifest));
+    downloadText(`malkuta-${analysis.total}.manifest.draft.json`, "application/json", JSON.stringify(manifest, null, 2));
+    setArtifactStatus("DRAFT MANIFEST · INSERT PINNED IMAGE CID");
+  };
 
   const selectVerse = (index: number) => {
     setMode("ancient");
@@ -200,7 +269,7 @@ export default function Home() {
           <p className="eyebrow"><span>01</span> SCRIPTURE → SIGNAL → FORM</p>
           <h1>The kingdom,<br /><em>made visible.</em></h1>
         </div>
-        <p className="intro-copy">A precision instrument that translates Hebrew scripture into verifiable harmonic frequency and deterministic geometric form.</p>
+        <p className="intro-copy">A precision instrument that translates the root frequencies of human record—from proto-linguistic constants to codified scripture—into verifiable harmonic frequency and deterministic geometric form.</p>
       </section>
 
       <section className="instrument">
@@ -250,7 +319,7 @@ export default function Home() {
           <div className="panel-heading"><span>02 / OUTPUT</span><small>LIVE GEOMETRY</small></div>
           <div className="canvas-stage">
             <div className="axis horizontal" /><div className="axis vertical" />
-            <MandalaCanvas data={analysis} active={active} />
+            <MandalaCanvas ref={mandalaRef} data={analysis} active={active} />
             <div className="canvas-index top-left">Σ {analysis.total.toLocaleString()}</div>
             <div className="canvas-index top-right">ΦK {analysis.scale.toFixed(5)}</div>
             <div className="canvas-index bottom-left">{analysis.symmetry || "—"} FOLD SYMMETRY</div>
@@ -258,6 +327,13 @@ export default function Home() {
             <div className="frequency-readout"><strong>{analysis.phase.toFixed(0)}°</strong><span>PHASE</span><small>RADIAL FREQUENCY</small></div>
           </div>
           <div className="visual-footer"><span>DRAG CURSOR TO INSPECT PARALLAX</span><button onClick={() => setActive(!active)}>{active ? "Ⅱ PAUSE" : "▶ RESUME"}</button></div>
+          <div className="artifact-tools">
+            <div><span>TRACK C / ARTIFACT</span><small>{artifactStatus}</small></div>
+            <button onClick={exportSvg} disabled={!analysis.total}>EXPORT SVG</button>
+            <button onClick={exportPng} disabled={!analysis.total}>PNG</button>
+            <button onClick={exportManifest} disabled={!analysis.total}>MANIFEST</button>
+          </div>
+          {manifestDigest && <div className="manifest-digest"><span>DRAFT KECCAK–256</span><code>{manifestDigest}</code></div>}
         </div>
 
         <aside className="audit-panel panel">
@@ -283,25 +359,44 @@ export default function Home() {
               <p>(Σ ÷ {analysis.maxPossibleSum.toLocaleString() || "MAX"}) × 1.618</p>
             </div>
             <div className="verification"><span>✓</span><div><b>REPRODUCIBLE OUTPUT</b><small>Identical source + protocol = identical form.</small></div></div>
+            {protocolSeal && <div className="seal"><span>SHA–256 PROTOCOL SEAL</span><code>{protocolSeal}</code></div>}
           </> : <>
             <div className="audit-title"><span>{mode === "ancient" ? "MASTER_MAP" : mode === "latin" ? "LATIN_ALPHA" : "CUSTOM_MAP"}</span><small>1–{analysis.maxMapValue || "—"}</small></div>
             <p className="protocol-copy">{mode === "ancient" ? "Standard Aramaic/Hebrew alphabetic numerals. Hardcoded and immutable in Composer Protocol v1. Final letterforms normalize to their base letter." : mode === "latin" ? "Universal alphabetic mapping. Latin letters normalize to uppercase and resolve from A=1 through Z=26." : "User-supplied mapping validated from local JSON. It is deterministic for this mapping file, but is not the Malkuta historical baseline."}</p>
             <div className="map-grid" dir={mode === "ancient" ? "rtl" : "ltr"}>{analysis.mapEntries.map(([letter, value]) => <div key={letter}><b>{letter}</b><span>{value}</span></div>)}</div>
-            <div className="protocol-note"><b>NO RANDOM SEED</b><span>Geometry is derived only from the audited values.</span></div>
+            <div className="protocol-note"><b>UNIVERSAL HARMONIC BRIDGE</b><span>No random seed. Root-60 remains specification-pending until its exact character matrix and alignment formula are ratified.</span></div>
           </>}
         </aside>
       </section>
 
-      <section className="anchor-section">
-        <div className="anchor-heading"><p className="eyebrow"><span>04</span> ON-CHAIN ANCHOR</p><h2>Truth, made permanent.</h2></div>
-        <div className="anchor-copy"><p>When minted, the exact source text is hashed and anchored to its token on Base. The artwork can be recreated; the provenance cannot be altered.</p><button onClick={() => setShowMint(!showMint)}>PREPARE MINT <span>↗</span></button></div>
-        <div className="chain-specs">
-          <div><span>CONTRACT</span><b>JOSHI HOUSE</b><small>ERC–721</small></div>
-          <div><span>NETWORK</span><b>BASE</b><small>CHAIN ID 8453</small></div>
-          <div><span>MAX SUPPLY</span><b>5,664</b><small>FIXED</small></div>
-          <div><span>MINT PRICE</span><b>0.01 ETH</b><small>PER TOKEN</small></div>
+      <section className="epoch-section" id="epoch-dashboard">
+        <div className="epoch-heading">
+          <p className="eyebrow"><span>04</span> FREEDOM ENGINE / EPOCH 2026</p>
+          <h2>A living archive of<br /><em>what humanity seeks.</em></h2>
+          <p>Annual mint events become an auditable research layer. Token provenance remains locked while each epoch publishes its own versioned summary.</p>
         </div>
-        {showMint && <div className="mint-notice"><span>CONTRACT READY</span><p>Wallet connection is available. Add the deployed JoshiHouse contract address to activate on-chain mint submission.</p><button onClick={connectWallet}>{wallet || "CONNECT WALLET"}</button></div>}
+        <div className="epoch-grid">
+          <div className="epoch-master">
+            <div className="epoch-label"><span>MASTER MANDALA</span><small>AGGREGATE OVERLAY</small></div>
+            <div className="epoch-orbit"><i /><i /><i /><strong>2026</strong><span>AWAITING INDEXER</span></div>
+          </div>
+          <div className="epoch-metric"><span>AGGREGATE FREQUENCY</span><b>—</b><small>Σ OF VERIFIED MINT EVENTS</small></div>
+          <div className="epoch-metric"><span>DOMINANT HUE</span><b>—°</b><small>HSL DISTRIBUTION</small></div>
+          <div className="epoch-list"><div className="epoch-label"><span>MOST MINTED SOURCES</span><small>ON-CHAIN ONLY</small></div><p>No Base Sepolia mint events indexed yet. Requires an event indexer and manifest resolver.</p></div>
+          <div className="epoch-list"><div className="epoch-label"><span>FREQUENCY HEATMAP</span><small>PRIVACY-SAFE</small></div><div className="heatmap">{Array.from({ length: 28 }, (_, index) => <i key={index} style={{ opacity: .08 + (index % 5) * .035 }} />)}</div><p>Activates from verified mints; searches are not tracked.</p></div>
+        </div>
+      </section>
+
+      <section className="anchor-section">
+        <div className="anchor-heading"><p className="eyebrow"><span>05</span> ON-CHAIN ANCHOR</p><h2>Truth, made permanent.</h2></div>
+        <div className="anchor-copy"><p>At mint, the content hash, protocol version, and mapping digest are written with the token. No owner setter exists, so its provenance cannot be replaced later.</p><button onClick={() => setShowMint(!showMint)}>INSPECT TRACK A <span>↗</span></button></div>
+        <div className="chain-specs">
+          <div><span>CONTRACT</span><b>MALKUTA ENGINE</b><small>ERC–721 / TRACK A</small></div>
+          <div><span>PROVENANCE</span><b>IMMUTABLE</b><small>WRITTEN AT MINT</small></div>
+          <div><span>PROTOCOL BINDING</span><b>VERSION + DIGEST</b><small>PER TOKEN</small></div>
+          <div><span>SUPPLY MODEL</span><b>INFINITE</b><small>ANNUAL SEALED EPOCHS</small></div>
+        </div>
+        {showMint && <div className="mint-notice"><span>TRACK A STAGED</span><p>MalkutaEngine stores contentHash, protocolVersion, and mappingDigest during _safeMint. Add the audited deployment address and ABI to activate submissions.</p><button onClick={connectWallet}>{wallet || "CONNECT WALLET"}</button></div>}
       </section>
 
       <footer><div className="brand footer-brand"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span></div><p>THE SCRIPTURE IS THE SEED.<br />THE PROTOCOL IS THE PROOF.</p><span>© 2026 HOUSE OF JOSHI</span></footer>
