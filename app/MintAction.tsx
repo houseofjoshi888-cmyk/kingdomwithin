@@ -69,7 +69,7 @@ export function MintAction({ sourceText, analysis, mode }: { sourceText: string;
   }
 
   const buttonLabel = !MALKUTA_ENGINE_CONFIGURED
-    ? "CONTRACT ADDRESS REQUIRED"
+    ? "MINTING CURRENTLY UNAVAILABLE"
     : !isConnected
       ? "CONNECT WALLET TO MINT"
       : chainId !== BASE_MAINNET_CHAIN_ID

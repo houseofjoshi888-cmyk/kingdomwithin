@@ -35,7 +35,7 @@ export default function VerifyPage() {
         <div className="verify-instrument">
           <label htmlFor="token-id">TOKEN ID</label>
           <div className="verify-search"><input id="token-id" inputMode="numeric" value={tokenInput} onChange={(event) => setTokenInput(event.target.value.trim())} placeholder="Enter token number" /><span>⌕</span></div>
-          {!MALKUTA_ENGINE_CONFIGURED && <p className="verify-message">CONTRACT ADDRESS REQUIRED</p>}
+          {!MALKUTA_ENGINE_CONFIGURED && <p className="verify-message">VERIFIER CURRENTLY UNAVAILABLE</p>}
           {isLoading && <p className="verify-message">READING BASE MAINNET…</p>}
           {error && <p className="verify-message error">TOKEN LOOKUP FAILED</p>}
           {tokenId !== undefined && provenance && !exists && <p className="verify-message">NO MALKUTA PROVENANCE FOUND FOR THIS TOKEN</p>}

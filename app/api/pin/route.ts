@@ -22,7 +22,7 @@ async function pinFile(jwt: string, filename: string, contentType: string, conte
 
 export async function POST(request: Request) {
   const jwt = process.env.PINATA_JWT;
-  if (!jwt) return NextResponse.json({ error: "Storage service is not configured." }, { status: 503 });
+  if (!jwt) return NextResponse.json({ error: "Artifact service is temporarily unavailable." }, { status: 503 });
   try {
     const body = await request.json() as { address?: string; sourceText?: string; mode?: MappingMode; timestamp?: number; signature?: `0x${string}` };
     const sourceText = body.sourceText ?? "";
@@ -50,4 +50,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Canonical upload failed." }, { status: 502 });
   }
 }
-
