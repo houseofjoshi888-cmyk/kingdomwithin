@@ -6,7 +6,7 @@ const steps = [
   ["Audit the signature", "Read every mapped glyph and verify the Numerical Signature, symmetry, phase, golden scale, hue, and SHA-256 protocol seal."],
   ["Generate the form", "Select Generate Mandala. The live motion is an inspection layer; it does not change the underlying deterministic geometry."],
   ["Capture the heirloom", "Export SVG for the canonical resolution-independent artifact. PNG freezes the canvas at protocol time t=0 as a convenience rendition."],
-  ["Package and mint", "Pin the artifact, insert its final IPFS URI into the manifest, compute its Keccak-256 digest, then submit that digest with the protocol version and mapping digest."],
+  ["Package and mint", "Pin the artifact, insert its final IPFS URI into the manifest, and compute its Keccak-256 digest. Transaction submission activates after the corrected contract deployment is verified."],
 ] as const;
 
 export default function HowToUse() {

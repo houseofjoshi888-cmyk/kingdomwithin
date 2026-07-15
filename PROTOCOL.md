@@ -94,4 +94,6 @@ Root-60 is defined by this exact function after normalization: add `normalized.c
 
 ## 10. Deployment gate
 
-`MalkutaEngine.sol` is Track A source, not production-ready deployment authorization. Its current `mint` function is public, free, and permits any caller to select a recipient and unused token ID. Base Sepolia broadcast remains gated until the intended access, payment, token-ID, and epoch policies are finalized and tested.
+`MalkutaEngine.sol` mirrors the contract deployed on Base mainnet at `0xD9883fDdf57Ca58f775Bdab96C0e7c3F1c918af3`. Genesis Epoch 0 is active at 0.01 ETH.
+
+Paid minting must remain disabled in the Composer because the deployed source calls `ownerOf(tokenId)` to test whether an unused token exists. OpenZeppelin ERC-721 reverts with `ERC721NonexistentToken` for that exact case, so every new-token mint reverts before `_safeMint`. A corrected deployment must use `_ownerOf(tokenId) == address(0)` or rely on `_safeMint`'s existing-token protection. The replacement address must be verified before the UI enables transaction submission.

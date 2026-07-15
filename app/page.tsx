@@ -21,6 +21,9 @@ const VERSES = [
   { ref: "Psalm 119:105", hebrew: "נר לרגלי דברך ואור לנתיבתי" },
 ] as const;
 
+const CONTRACT_ADDRESS = "0xD9883fDdf57Ca58f775Bdab96C0e7c3F1c918af3";
+const CONTRACT_URL = `https://basescan.org/address/${CONTRACT_ADDRESS}`;
+
 type MandalaCapture = { captureCanonical: () => string | null };
 
 const MandalaCanvas = forwardRef<MandalaCapture, { data: ReturnType<typeof analyzeVerse>; active: boolean }>(function MandalaCanvas({ data, active }, ref) {
@@ -261,7 +264,7 @@ export default function Home() {
           <span className="brand-mark">K</span>
           <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </a>
-        <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> BASE READY</div>
+        <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> BASE MAINNET / READ ONLY</div>
         <div className="top-actions"><Link href="/how-to-use">HOW TO USE</Link><button className="wallet-button" onClick={connectWallet}>{wallet || "CONNECT WALLET"}<span>↗</span></button></div>
       </header>
 
@@ -384,21 +387,21 @@ export default function Home() {
           </div>
           <div className="epoch-metric"><span>AGGREGATE FREQUENCY</span><b>—</b><small>Σ OF VERIFIED MINT EVENTS</small></div>
           <div className="epoch-metric"><span>DOMINANT HUE</span><b>—°</b><small>HSL DISTRIBUTION</small></div>
-          <div className="epoch-list"><div className="epoch-label"><span>MOST MINTED SOURCES</span><small>ON-CHAIN ONLY</small></div><p>No Base Sepolia mint events indexed yet. Requires an event indexer and manifest resolver.</p></div>
+          <div className="epoch-list"><div className="epoch-label"><span>MOST MINTED SOURCES</span><small>ON-CHAIN ONLY</small></div><p>No Base mainnet mint events indexed yet. Requires an event indexer and manifest resolver.</p></div>
           <div className="epoch-list"><div className="epoch-label"><span>FREQUENCY HEATMAP</span><small>PRIVACY-SAFE</small></div><div className="heatmap">{Array.from({ length: 28 }, (_, index) => <i key={index} style={{ opacity: .08 + (index % 5) * .035 }} />)}</div><p>Activates from verified mints; searches are not tracked.</p></div>
         </div>
       </section>
 
       <section className="anchor-section">
         <div className="anchor-heading"><p className="eyebrow"><span>05</span> ON-CHAIN ANCHOR</p><h2>Truth, made permanent.</h2></div>
-        <div className="anchor-copy"><p>At mint, the content hash, protocol version, and mapping digest are written with the token. No owner setter exists, so its provenance cannot be replaced later.</p><button onClick={() => setShowMint(!showMint)}>INSPECT TRACK A <span>↗</span></button></div>
+        <div className="anchor-copy"><p>The Base mainnet contract records content hash, protocol version, epoch, and timestamp at mint. Its live mint path is held in read-only mode because transaction simulation detects an ERC-721 nonexistent-token revert.</p><button onClick={() => setShowMint(!showMint)}>CONTRACT STATUS <span>↗</span></button></div>
         <div className="chain-specs">
-          <div><span>CONTRACT</span><b>MALKUTA ENGINE</b><small>ERC–721 / TRACK A</small></div>
-          <div><span>PROVENANCE</span><b>IMMUTABLE</b><small>WRITTEN AT MINT</small></div>
-          <div><span>PROTOCOL BINDING</span><b>VERSION + DIGEST</b><small>PER TOKEN</small></div>
-          <div><span>SUPPLY MODEL</span><b>INFINITE</b><small>ANNUAL SEALED EPOCHS</small></div>
+          <div><span>CONTRACT</span><b>MALKUTA ENGINE</b><small>BASE · {CONTRACT_ADDRESS.slice(0, 8)}…{CONTRACT_ADDRESS.slice(-4)}</small></div>
+          <div><span>CURRENT EPOCH</span><b>GENESIS</b><small>#0 · 0.01 ETH · ACTIVE</small></div>
+          <div><span>PROVENANCE</span><b>IMMUTABLE</b><small>HASH · VERSION · EPOCH · TIME</small></div>
+          <div><span>MINT STATUS</span><b>READ ONLY</b><small>CORRECTED REDEPLOY REQUIRED</small></div>
         </div>
-        {showMint && <div className="mint-notice"><span>TRACK A STAGED</span><p>MalkutaEngine stores contentHash, protocolVersion, and mappingDigest during _safeMint. Add the audited deployment address and ABI to activate submissions.</p><button onClick={connectWallet}>{wallet || "CONNECT WALLET"}</button></div>}
+        {showMint && <div className="mint-notice"><span>LIVE CONTRACT FOUND</span><p>The deployed `ownerOf(tokenId) == address(0)` guard reverts for every unused token ID. Replace it with `_ownerOf(tokenId) == address(0)` and redeploy before enabling paid mint transactions.</p><a href={CONTRACT_URL} target="_blank" rel="noreferrer">VIEW ON BASESCAN ↗</a></div>}
       </section>
 
       <footer><div className="brand footer-brand"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span></div><p>THE SCRIPTURE IS THE SEED.<br />THE PROTOCOL IS THE PROOF.</p><Link href="/how-to-use">HOW TO USE ↗</Link></footer>
