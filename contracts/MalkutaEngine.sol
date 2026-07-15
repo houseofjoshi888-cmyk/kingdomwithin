@@ -2,12 +2,14 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract MalkutaEngine is ERC721URIStorage, AccessControl, ReentrancyGuard {
+contract MalkutaEngine is ERC721URIStorage, ERC721Royalty, AccessControl, ReentrancyGuard {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     address payable public constant HOUSE_WALLET = payable(0x6736d2eA9807297F0e56967361B9410854B86a5f);
+    uint96 public constant ROYALTY_BPS = 700;
 
     struct Epoch {
         uint256 mintPrice;
@@ -44,6 +46,7 @@ contract MalkutaEngine is ERC721URIStorage, AccessControl, ReentrancyGuard {
     constructor() ERC721("MalkutaMandala", "MKT") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
+        _setDefaultRoyalty(HOUSE_WALLET, ROYALTY_BPS);
         epochs[0] = Epoch(0.01 ether, true, "Genesis");
         emit EpochConfigured(0, 0.01 ether, true, "Genesis");
     }
@@ -128,7 +131,16 @@ contract MalkutaEngine is ERC721URIStorage, AccessControl, ReentrancyGuard {
         return _totalMinted;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721URIStorage, AccessControl) returns (bool) {
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
+        return super.tokenURI(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721URIStorage, ERC721Royalty, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

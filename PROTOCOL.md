@@ -94,10 +94,12 @@ Root-60 is defined by this exact function after normalization: add `normalized.c
 
 ## 10. Production contract
 
-`MalkutaEngine.sol` is the canonical deployable contract. It uses OpenZeppelin v5 `ERC721URIStorage`, `AccessControl`, and `ReentrancyGuard`. Each mint atomically sets an immutable marketplace-readable `tokenURI`, stores the manifest Keccak-256 digest and protocol provenance, increments `totalSupply`, and emits the complete `MandalaMinted` record. There is no function that can replace a token URI or provenance after mint.
+`MalkutaEngine.sol` is the canonical deployable contract. It uses OpenZeppelin v5 `ERC721URIStorage`, `ERC721Royalty`, `AccessControl`, and `ReentrancyGuard`. Each mint atomically sets an immutable marketplace-readable `tokenURI`, stores the manifest Keccak-256 digest and protocol provenance, increments `totalSupply`, and emits the complete `MandalaMinted` record. There is no function that can replace a token URI or provenance after mint.
 
 Token IDs are deterministic verification keys: `uint256(keccak256(abi.encodePacked(recipient, contentHash)))`. The contract enforces this derivation, preventing arbitrary token-ID squatting and ensuring one recipient cannot mint the same canonical manifest twice.
 
 The contract exposes an `ADMIN_ROLE`-restricted `airdrop(recipient, tokenId, contentHash, protocolVersion, metadataURI)` function. It lets an administrator pay the gas to mint directly to a recipient while recording the same immutable artifact and provenance as the public mint path. The recipient does not submit a transaction or pay gas.
 
 All ETH collected by public paid mints is withdrawn exclusively to the immutable House wallet `0x6736d2eA9807297F0e56967361B9410854B86a5f`. An administrator may trigger withdrawal but cannot redirect the destination. Admin airdrops are nonpayable and add no mint revenue.
+
+Every token reports a default ERC-2981 secondary-sale royalty of 700 basis points (7%) to the immutable House wallet. The contract exposes no royalty setter, so the receiver and rate cannot be changed after deployment. Royalty settlement depends on the secondary marketplace honoring ERC-2981.

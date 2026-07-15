@@ -4,6 +4,8 @@ export const MALKUTA_ENGINE_ABI = [
   { type: "function", name: "currentEpochId", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   { type: "function", name: "epochs", stateMutability: "view", inputs: [{ name: "", type: "uint256" }], outputs: [{ name: "mintPrice", type: "uint256" }, { name: "isActive", type: "bool" }, { name: "name", type: "string" }] },
   { type: "function", name: "totalSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "ROYALTY_BPS", stateMutability: "view", inputs: [], outputs: [{ type: "uint96" }] },
+  { type: "function", name: "royaltyInfo", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }, { name: "salePrice", type: "uint256" }], outputs: [{ name: "receiver", type: "address" }, { name: "royaltyAmount", type: "uint256" }] },
   { type: "function", name: "tokenURI", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ type: "string" }] },
   { type: "function", name: "tokenProvenance", stateMutability: "view", inputs: [{ name: "", type: "uint256" }], outputs: [{ name: "contentHash", type: "bytes32" }, { name: "protocolVersion", type: "string" }, { name: "metadataURI", type: "string" }, { name: "epochId", type: "uint256" }, { name: "timestamp", type: "uint256" }] },
   { type: "function", name: "mint", stateMutability: "payable", inputs: [{ name: "tokenId", type: "uint256" }, { name: "contentHash", type: "bytes32" }, { name: "protocolVersion", type: "string" }, { name: "metadataURI", type: "string" }], outputs: [] },

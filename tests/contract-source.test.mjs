@@ -45,8 +45,15 @@ test("all withdrawn mint proceeds are locked to the House wallet", () => {
   assert.doesNotMatch(source, /payable\(msg\.sender\)/);
 });
 
+test("every token advertises an immutable 7 percent ERC-2981 royalty to the House wallet", () => {
+  assert.match(source, /ERC721Royalty/);
+  assert.match(source, /ROYALTY_BPS\s*=\s*700/);
+  assert.match(source, /_setDefaultRoyalty\(HOUSE_WALLET, ROYALTY_BPS\)/);
+  assert.doesNotMatch(source, /function\s+(?:set|update|delete).*Royalty/i);
+});
+
 test("state-changing value paths use reentrancy protection", () => {
-  assert.match(source, /contract MalkutaEngine is ERC721URIStorage, AccessControl, ReentrancyGuard/);
+  assert.match(source, /contract MalkutaEngine is ERC721URIStorage, ERC721Royalty, AccessControl, ReentrancyGuard/);
   assert.match(source, /function mint\([\s\S]*?nonReentrant/);
   assert.match(source, /function airdrop\([\s\S]*?nonReentrant/);
   assert.match(source, /function withdraw\(\) external onlyRole\(ADMIN_ROLE\) nonReentrant/);

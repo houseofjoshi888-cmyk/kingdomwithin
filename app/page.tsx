@@ -392,7 +392,7 @@ export default function Home() {
           <div><span>PROVENANCE</span><b>IMMUTABLE</b><small>IPFS · HASH · VERSION · EPOCH</small></div>
           <div><span>MINT PATHS</span><b>PUBLIC + ADMIN</b><small>PAID MINT · GAS-SPONSORED AIRDROP</small></div>
         </div>
-        {showMint && <div className="mint-notice"><span>PRODUCTION CONTRACT</span><p>Exact-price public minting, admin-only airdrops, immutable tokenURI and provenance, epoch controls, supply tracking, reentrancy protection, and House-wallet-only withdrawals.</p>{MALKUTA_ENGINE_CONFIGURED && <a href={MALKUTA_ENGINE_EXPLORER_URL} target="_blank" rel="noreferrer">VIEW ON BASESCAN ↗</a>}</div>}
+        {showMint && <div className="mint-notice"><span>PRODUCTION CONTRACT</span><p>Exact-price public minting, admin-only airdrops, immutable tokenURI and provenance, epoch controls, supply tracking, House-wallet-only withdrawals, and a 7% ERC-2981 secondary-sale royalty to the House wallet.</p>{MALKUTA_ENGINE_CONFIGURED && <a href={MALKUTA_ENGINE_EXPLORER_URL} target="_blank" rel="noreferrer">VIEW ON BASESCAN ↗</a>}</div>}
       </section>
 
       <footer><div className="brand footer-brand"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span></div><p>THE SCRIPTURE IS THE SEED.<br />THE PROTOCOL IS THE PROOF.</p><Link href="/how-to-use">HOW TO USE ↗</Link></footer>
