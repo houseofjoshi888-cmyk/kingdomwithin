@@ -57,6 +57,27 @@ contract MalkutaEngine is ERC721, AccessControl {
         emit MandalaMinted(tokenId, currentEpochId, _contentHash);
     }
 
+    // ADMIN: Gas-sponsored mint directly to a recipient
+    function airdrop(
+        address _recipient,
+        uint256 _tokenId,
+        bytes32 _contentHash,
+        string memory _version
+    ) external onlyRole(ADMIN_ROLE) {
+        require(_ownerOf(_tokenId) == address(0), "Token ID already exists.");
+
+        _safeMint(_recipient, _tokenId);
+
+        tokenProvenance[_tokenId] = Provenance({
+            contentHash: _contentHash,
+            protocolVersion: _version,
+            epochId: currentEpochId,
+            timestamp: block.timestamp
+        });
+
+        emit MandalaMinted(_tokenId, currentEpochId, _contentHash);
+    }
+
     // ADMIN: Update epoch settings
     function setEpoch(uint256 _id, uint256 _price, bool _active, string memory _name) external onlyRole(ADMIN_ROLE) {
         epochs[_id] = Epoch(_price, _active, _name);

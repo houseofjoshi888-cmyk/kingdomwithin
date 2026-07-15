@@ -26,3 +26,15 @@ test("Genesis epoch and role-based administration match the deployment", () => {
   assert.match(source, /epochs\[0\]\s*=\s*Epoch\(0\.01 ether, true, "Genesis"\)/);
   assert.match(source, /onlyRole\(ADMIN_ROLE\)/);
 });
+
+test("airdrop is an admin-only gas-sponsored mint with immutable provenance", () => {
+  const airdrop = source.match(/function airdrop\([\s\S]*?emit MandalaMinted\(_tokenId, currentEpochId, _contentHash\);\s*}/)?.[0] ?? "";
+
+  assert.match(airdrop, /external onlyRole\(ADMIN_ROLE\)/);
+  assert.match(airdrop, /_ownerOf\(_tokenId\)\s*==\s*address\(0\)/);
+  assert.match(airdrop, /_safeMint\(_recipient, _tokenId\)/);
+  assert.match(airdrop, /tokenProvenance\[_tokenId\]\s*=\s*Provenance/);
+  assert.match(airdrop, /epochId:\s*currentEpochId/);
+  assert.match(airdrop, /timestamp:\s*block\.timestamp/);
+  assert.doesNotMatch(airdrop, /payable/);
+});
