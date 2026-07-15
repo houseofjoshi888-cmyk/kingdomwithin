@@ -1,18 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-const MASTER_MAP = [
-  ["א", 1], ["ב", 2], ["ג", 3], ["ד", 4], ["ה", 5], ["ו", 6],
-  ["ז", 7], ["ח", 8], ["ט", 9], ["י", 10], ["כ", 20], ["ל", 30],
-  ["מ", 40], ["נ", 50], ["ס", 60], ["ע", 70], ["פ", 80], ["צ", 90],
-  ["ק", 100], ["ר", 200], ["ש", 300], ["ת", 400],
-] as const;
-
-const VALUE_MAP = Object.fromEntries(MASTER_MAP) as Record<string, number>;
-const LATIN_MAP = Object.fromEntries(Array.from({ length: 26 }, (_, index) => [String.fromCharCode(65 + index), index + 1])) as Record<string, number>;
-const FINAL_FORMS: Record<string, string> = { ך: "כ", ם: "מ", ן: "נ", ף: "פ", ץ: "צ" };
-type MappingMode = "ancient" | "latin" | "custom";
+import { analyzeVerse, MASTER_MAP, TEST_INPUTS, type MappingMode } from "../lib/protocol";
 
 const VERSES = [
   { ref: "Genesis 1:1", hebrew: "בראשית ברא אלהים את השמים ואת הארץ" },
@@ -21,27 +10,6 @@ const VERSES = [
   { ref: "Psalm 23:1", hebrew: "יהוה רעי לא אחסר" },
   { ref: "Psalm 119:105", hebrew: "נר לרגלי דברך ואור לנתיבתי" },
 ] as const;
-
-function analyzeVerse(text: string, mode: MappingMode, customMap: Record<string, number>) {
-  const activeMap = mode === "ancient" ? VALUE_MAP : mode === "latin" ? LATIN_MAP : customMap;
-  const letters = Array.from(text).flatMap((raw) => {
-    const normalized = mode === "ancient" ? (FINAL_FORMS[raw] ?? raw) : mode === "latin" ? raw.toUpperCase() : raw;
-    const value = activeMap[normalized];
-    return value ? [{ raw, normalized, value }] : [];
-  });
-  const ignored = Array.from(text).filter((char) => {
-    const normalized = mode === "ancient" ? (FINAL_FORMS[char] ?? char) : mode === "latin" ? char.toUpperCase() : char;
-    return !activeMap[normalized] && !/\s|[\u0591-\u05C7]|[.,;:!?—–\-'"()]/u.test(char);
-  });
-  const total = letters.reduce((sum, item) => sum + item.value, 0);
-  const maxMapValue = Math.max(0, ...Object.values(activeMap));
-  const maxPossibleSum = letters.length * maxMapValue;
-  const symmetry = total ? (total % 12) + 3 : 0;
-  const phase = total ? total % 360 : 0;
-  const scale = maxPossibleSum ? (total / maxPossibleSum) * 1.618 : 0;
-  const mapEntries = Object.entries(activeMap);
-  return { letters, ignored, total, maxPossibleSum, maxMapValue, symmetry, phase, scale, hue: phase, mapEntries };
-}
 
 function MandalaCanvas({ data, active }: { data: ReturnType<typeof analyzeVerse>; active: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -245,6 +213,15 @@ export default function Home() {
             <option value="custom">C — Custom JSON Mapping</option>
           </select>
           <div className={`mode-badge ${mode}`}><span>{mode === "ancient" ? "HISTORICAL BASELINE" : mode === "latin" ? "UNIVERSAL A–Z" : "USER-SUPPLIED PROTOCOL"}</span><b>{mode === "ancient" ? "22 GLYPHS · 1–400" : mode === "latin" ? "26 GLYPHS · 1–26" : `${analysis.mapEntries.length} GLYPHS`}</b></div>
+          {mode === "latin" && <div className="test-inputs">
+            <div className="test-label"><span>OFFICIAL TEST INPUTS</span><small>LATIN-ALPHA / LOCKED</small></div>
+            {TEST_INPUTS.map((item) => {
+              const expected = analyzeVerse(item.phrase, "latin", {});
+              return <button key={item.phrase} className={verse === item.phrase ? "selected" : ""} onClick={() => { setVerse(item.phrase); setActive(true); }}>
+                <span><b>{item.phrase}</b><small>{item.role}</small></span><em>Σ {expected.total}</em>
+              </button>;
+            })}
+          </div>}
           {mode === "custom" && <div className="upload-box">
             <input id="map-upload" type="file" accept="application/json,.json" onChange={(event) => uploadMap(event.target.files?.[0])} />
             <label htmlFor="map-upload"><span>↑</span><b>{customFile || "UPLOAD MAPPING JSON"}</b><small>{customFile ? "Validated locally" : '{ "A": 1, "B": 2 }'}</small></label>
