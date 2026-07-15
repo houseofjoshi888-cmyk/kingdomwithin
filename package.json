@@ -11,7 +11,7 @@
     "build:vercel": "next build",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "test": "npm run build && npm run test:protocol && npm run test:contract && npm run test:mainnet",
-    "test:protocol": "node --experimental-strip-types --test tests/protocol.test.ts",
+    "test:protocol": "node --experimental-strip-types --test tests/protocol.test.ts tests/epoch.test.ts",
     "test:contract": "node --test tests/contract-source.test.mjs && node tests/compile-contract.mjs",
     "test:mainnet": "node --test tests/mainnet-config.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",

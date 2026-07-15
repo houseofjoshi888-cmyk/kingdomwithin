@@ -84,7 +84,7 @@ Epoch configuration is restricted to `ADMIN_ROLE` and emits `EpochConfigured`. A
 
 At year end, a sealed epoch may publish a digital yearbook and/or an `Epoch Final` NFT containing a versioned aggregate summary and selected mathematical signatures. This is a new artifact and cannot modify any prior token.
 
-The real-time dashboard should index `MandalaMinted` events with a subgraph or equivalent event indexer. The event exposes token ID, epoch, recipient, operator, content hash, protocol version, immutable metadata URI, and paid price. Statistical aggregation resolves the canonical manifest from IPFS and does not store image files on-chain.
+The real-time dashboard indexes `MandalaMinted` events directly from Base mainnet in bounded block ranges. It resolves each immutable metadata URI, rejects any manifest whose exact bytes do not match the on-chain Keccak-256 content hash, and aggregates only verified records. The event exposes token ID, epoch, recipient, operator, content hash, protocol version, immutable metadata URI, and paid price. The index exposes mint totals, aggregate signatures, hue and frequency distributions, leading source texts, and bounded geometry parameters for the Master Mandala; it does not store image files on-chain.
 
 ## 9. Universal Harmonic Bridge
 

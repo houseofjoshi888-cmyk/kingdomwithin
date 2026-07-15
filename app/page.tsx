@@ -4,6 +4,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 import Link from "next/link";
 import { WalletButton } from "./WalletButton";
 import { MintAction } from "./MintAction";
+import { EpochDashboard } from "./EpochDashboard";
 import {
   analyzeVerse,
   canonicalProtocolPayload,
@@ -365,23 +366,7 @@ export default function Home() {
         </aside>
       </section>
 
-      <section className="epoch-section" id="epoch-dashboard">
-        <div className="epoch-heading">
-          <p className="eyebrow"><span>04</span> FREEDOM ENGINE / EPOCH 2026</p>
-          <h2>A living archive of<br /><em>what humanity seeks.</em></h2>
-          <p>Annual mint events become an auditable research layer. Token provenance remains locked while each epoch publishes its own versioned summary.</p>
-        </div>
-        <div className="epoch-grid">
-          <div className="epoch-master">
-            <div className="epoch-label"><span>MASTER MANDALA</span><small>AGGREGATE OVERLAY</small></div>
-            <div className="epoch-orbit"><i /><i /><i /><strong>2026</strong><span>AWAITING INDEXER</span></div>
-          </div>
-          <div className="epoch-metric"><span>AGGREGATE FREQUENCY</span><b>—</b><small>Σ OF VERIFIED MINT EVENTS</small></div>
-          <div className="epoch-metric"><span>DOMINANT HUE</span><b>—°</b><small>HSL DISTRIBUTION</small></div>
-          <div className="epoch-list"><div className="epoch-label"><span>MOST MINTED SOURCES</span><small>ON-CHAIN ONLY</small></div><p>No Base mainnet mint events indexed yet. Requires an event indexer and manifest resolver.</p></div>
-          <div className="epoch-list"><div className="epoch-label"><span>FREQUENCY HEATMAP</span><small>PRIVACY-SAFE</small></div><div className="heatmap">{Array.from({ length: 28 }, (_, index) => <i key={index} style={{ opacity: .08 + (index % 5) * .035 }} />)}</div><p>Activates from verified mints; searches are not tracked.</p></div>
-        </div>
-      </section>
+      <EpochDashboard />
 
       <section className="anchor-section">
         <div className="anchor-heading"><p className="eyebrow"><span>05</span> ON-CHAIN ANCHOR</p><h2>Truth, made permanent.</h2></div>
