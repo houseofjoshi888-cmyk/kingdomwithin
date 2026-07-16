@@ -5,7 +5,8 @@ import { aggregateEpoch, type IndexedMandala } from "../../../lib/epoch";
 import { MALKUTA_ENGINE_ABI } from "../../../lib/contract";
 import { BASE_MAINNET_RPC_FALLBACK_URL, BASE_MAINNET_RPC_URL, MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED, MALKUTA_ENGINE_DEPLOYMENT_BLOCK } from "../../../lib/network";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const mintEvent = parseAbiItem("event MandalaMinted(uint256 indexed tokenId, uint256 indexed epochId, address indexed recipient, address operator, bytes32 contentHash, string protocolVersion, string metadataURI, uint256 price)");
 const ATTRIBUTE_NAMES = {
@@ -104,13 +105,15 @@ export async function GET(request: Request) {
     const epoch = await client.readContract({ address: MALKUTA_ENGINE_ADDRESS, abi: MALKUTA_ENGINE_ABI, functionName: "epochs", args: [epochId] });
     const latestBlock = await client.getBlockNumber();
     const indexedBlock = latestBlock > CONFIRMATION_BLOCKS ? latestBlock - CONFIRMATION_BLOCKS : latestBlock;
-    const chunkSize = BigInt(10_000);
+    const chunkSize = BigInt(2_000);
     const ranges: Array<{ fromBlock: bigint; toBlock: bigint }> = [];
-    for (let fromBlock = BigInt(deploymentBlock); fromBlock <= indexedBlock; fromBlock += chunkSize) {
-      const toBlock = fromBlock + chunkSize - BigInt(1) > indexedBlock ? indexedBlock : fromBlock + chunkSize - BigInt(1);
-      ranges.push({ fromBlock, toBlock });
+    if (contractTotalSupply > BigInt(0)) {
+      for (let fromBlock = BigInt(deploymentBlock); fromBlock <= indexedBlock; fromBlock += chunkSize) {
+        const toBlock = fromBlock + chunkSize - BigInt(1) > indexedBlock ? indexedBlock : fromBlock + chunkSize - BigInt(1);
+        ranges.push({ fromBlock, toBlock });
+      }
     }
-    const logGroups = await mapConcurrentStrict(ranges, 4, ({ fromBlock, toBlock }) => allEpochs
+    const logGroups = await mapConcurrentStrict(ranges, 2, ({ fromBlock, toBlock }) => allEpochs
       ? client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, fromBlock, toBlock })
       : client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, args: { epochId }, fromBlock, toBlock }));
     const logs = logGroups.flat();
@@ -165,7 +168,8 @@ export async function GET(request: Request) {
       rejectedManifests: mandalas.length - verifiedMandalas.length,
       indexHealth: { scannedRanges: ranges.length, confirmations: Number(CONFIRMATION_BLOCKS), rpcEndpoints: rpcUrls.length, scope: allEpochs ? "all" : `epoch_${epochId}` },
     }, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=1800, stale-if-error=86400" } });
-  } catch {
+  } catch (error) {
+    console.error("Epoch indexer failed", error instanceof Error ? error.message : "Unknown indexer error");
     return NextResponse.json({ status: "error" }, { status: 502 });
   }
 }

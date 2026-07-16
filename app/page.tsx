@@ -3,7 +3,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { WalletButton } from "./WalletButton";
-import { MintAction } from "./MintAction";
+import { MintAction, type MintActionHandle } from "./MintAction";
 import { EpochDashboard } from "./EpochDashboard";
 import { SiteFooter } from "./SiteFooter";
 import { BrandMark } from "./BrandMark";
@@ -167,9 +167,10 @@ export default function Home() {
   const [active, setActive] = useState(true);
   const [tab, setTab] = useState<"audit" | "protocol">("audit");
   const [protocolSeal, setProtocolSeal] = useState("");
-  const [artifactStatus, setArtifactStatus] = useState("READY FOR CANONICAL CAPTURE");
+  const [artifactStatus, setArtifactStatus] = useState("GENERATE MANDALA TO PIN THE CANONICAL ARTIFACT");
   const [manifestDigest, setManifestDigest] = useState("");
   const mandalaRef = useRef<MandalaCapture>(null);
+  const mintActionRef = useRef<MintActionHandle>(null);
   const analysis = useMemo(() => analyzeVerse(verse, mode, customMap), [verse, mode, customMap]);
 
   useEffect(() => {
@@ -218,12 +219,14 @@ export default function Home() {
     setVerse(VERSES[index].hebrew);
     setQuery(VERSES[index].ref);
     setActive(true);
+    setArtifactStatus("GENERATE MANDALA TO PIN THE CANONICAL ARTIFACT");
   };
 
   const changeMode = (nextMode: MappingMode) => {
     setMode(nextMode);
     setActive(false);
     setQuery("");
+    setArtifactStatus(nextMode === "custom" ? "CUSTOM MAPS REQUIRE A RATIFIED MAPPING DIGEST" : "GENERATE MANDALA TO PIN THE CANONICAL ARTIFACT");
     if (nextMode === "root60") setVerse("In the beginning was the Word");
     if (nextMode === "ancient") { setVerse(VERSES[0].hebrew); setQuery(VERSES[0].ref); }
     if (nextMode === "custom") setVerse("");
@@ -241,11 +244,17 @@ export default function Home() {
       setCustomFile(file.name);
       setCustomError("");
       setActive(false);
+      setArtifactStatus("CUSTOM MAPS REQUIRE A RATIFIED MAPPING DIGEST");
     } catch (error) {
       setCustomMap({});
       setCustomFile("");
       setCustomError(error instanceof Error ? error.message : "Invalid mapping JSON.");
     }
+  };
+
+  const generateMandala = () => {
+    setActive(true);
+    mintActionRef.current?.prepareCanonical();
   };
 
   return (
@@ -281,7 +290,7 @@ export default function Home() {
             <div className="test-label"><span>OFFICIAL TEST INPUTS</span><small>ROOT-60 / LOCKED</small></div>
             {TEST_INPUTS.map((item) => {
               const expected = analyzeVerse(item.phrase, "root60", {});
-              return <button key={item.phrase} className={verse === item.phrase ? "selected" : ""} onClick={() => { setVerse(item.phrase); setActive(true); }}>
+              return <button key={item.phrase} className={verse === item.phrase ? "selected" : ""} onClick={() => { setVerse(item.phrase); setActive(true); setArtifactStatus("GENERATE MANDALA TO PIN THE CANONICAL ARTIFACT"); }}>
                 <span><b>{item.phrase}</b><small>{item.role}</small></span><em>Σ {expected.total}</em>
               </button>;
             })}
@@ -305,9 +314,9 @@ export default function Home() {
           </div>
           </>}
           <label htmlFor="verse-text">{mode === "ancient" ? "Hebrew source" : "Source text"}</label>
-          <textarea id="verse-text" dir={mode === "ancient" ? "rtl" : "ltr"} value={verse} onChange={(e) => { setVerse(e.target.value); setActive(false); }} spellCheck={false} placeholder={mode === "custom" && !analysis.mapEntries.length ? "Upload a mapping, then enter source text…" : "Enter source text…"} />
+          <textarea id="verse-text" dir={mode === "ancient" ? "rtl" : "ltr"} value={verse} onChange={(e) => { setVerse(e.target.value); setActive(false); setArtifactStatus(mode === "custom" ? "CUSTOM MAPS REQUIRE A RATIFIED MAPPING DIGEST" : "GENERATE MANDALA TO PIN THE CANONICAL ARTIFACT"); }} spellCheck={false} placeholder={mode === "custom" && !analysis.mapEntries.length ? "Upload a mapping, then enter source text…" : "Enter source text…"} />
           <div className="input-meta"><span>{analysis.letters.length} mapped glyphs</span><span>{mode === "ancient" ? "UTF–8 / HEB" : mode === "root60" ? "NFKD / BASE–60" : "CUSTOM MAP"}</span></div>
-          <button className="generate" onClick={() => setActive(true)} disabled={!analysis.total}><span>GENERATE MANDALA</span><b>↗</b></button>
+          <button className="generate" onClick={generateMandala} disabled={!analysis.total}><span>GENERATE MANDALA</span><b>↗</b></button>
         </div>
 
         <div className="visual-panel panel">
@@ -329,7 +338,7 @@ export default function Home() {
             <button onClick={exportManifest} disabled={!analysis.total}>MANIFEST</button>
           </div>
           {manifestDigest && <div className="manifest-digest"><span>DRAFT KECCAK–256</span><code>{manifestDigest}</code></div>}
-          <MintAction sourceText={verse} analysis={analysis} mode={mode} />
+          <MintAction ref={mintActionRef} sourceText={verse} analysis={analysis} mode={mode} onPreparationStatus={setArtifactStatus} />
         </div>
 
         <aside className="audit-panel panel">

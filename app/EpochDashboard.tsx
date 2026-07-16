@@ -88,15 +88,16 @@ export function EpochDashboard() {
           <div className="epoch-orbit">
             {data?.stats.masterMandala.length ? <MasterMandala forms={data.stats.masterMandala} /> : <><i /><i /><i /></>}
             <strong>{state === "loading" ? "…" : data?.stats.totalMinted ?? "0"}</strong>
-            <span>{state === "ready" ? "VERIFIED MANDALAS" : state === "loading" ? "READING BASE MAINNET" : "INDEX AWAITING FIRST MINT"}</span>
+            <span>{state === "ready" ? "VERIFIED MANDALAS" : state === "loading" ? "READING BASE MAINNET" : "INDEXER TEMPORARILY UNAVAILABLE"}</span>
           </div>
         </div>
         <div className="epoch-metric"><span>AGGREGATE FREQUENCY</span><b>{data?.stats.aggregateFrequency.toLocaleString() ?? "—"}</b><small>Σ OF VERIFIED SIGNATURES</small></div>
         <div className="epoch-metric"><span>DOMINANT HUE</span><b>{data?.stats.dominantHue === null || !data ? "—°" : `${data.stats.dominantHue}°`}</b><small>30° HSL DISTRIBUTION</small></div>
-        <div className="epoch-list"><div className="epoch-label"><span>MOST MINTED SOURCES</span><small>ON-CHAIN VERIFIED</small></div>{data?.stats.topSources.length ? <ol>{data.stats.topSources.map((item) => <li key={item.source}><span>{item.source}</span><b>×{item.count}</b></li>)}</ol> : <p>No verified mints in this epoch yet.</p>}</div>
+        <div className="epoch-list"><div className="epoch-label"><span>MOST MINTED SOURCES</span><small>ON-CHAIN VERIFIED</small></div>{data?.stats.topSources.length ? <ol>{data.stats.topSources.map((item) => <li key={item.source}><span>{item.source}</span><b>×{item.count}</b></li>)}</ol> : <p>{state === "unavailable" ? "Mint statistics are unavailable until the Base index reconnects." : "No verified mints in this epoch yet."}</p>}</div>
         <div className="epoch-list"><div className="epoch-label"><span>FREQUENCY DISTRIBUTION</span><small>Σ MOD 28</small></div><div className="heatmap">{Array.from({ length: 28 }, (_, index) => <i key={index} title={`Bucket ${index}: ${data?.stats.frequencyDistribution[index] ?? 0}`} style={{ opacity: data ? .1 + (data.stats.frequencyDistribution[index] / maxFrequency) * .9 : .08 }} />)}</div><p>{data?.stats.topSignatures.length ? `Leading signatures: ${data.stats.topSignatures.slice(0, 4).map((item) => `${item.signature} ×${item.count}`).join(" · ")}` : "The distribution activates from verified mints."}</p></div>
       </div>
       {data && <div className="epoch-proof"><span>BASE MAINNET · BLOCK {data.indexedThroughBlock}</span><span>AVG SYMMETRY {data.stats.averageSymmetry.toFixed(2)} · AVG SCALE {data.stats.averageScale.toFixed(4)}</span></div>}
+      {state === "unavailable" && <div className="epoch-proof"><span>BASE INDEXER TEMPORARILY UNAVAILABLE</span><span>NO EMPTY-EPOCH ASSUMPTION HAS BEEN MADE</span></div>}
     </section>
   );
 }

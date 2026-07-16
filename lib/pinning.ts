@@ -2,6 +2,13 @@ import type { Address } from "viem";
 import type { Analysis, MappingMode } from "./protocol";
 import { canonicalUploadMessage } from "./upload-auth";
 
+export type CanonicalArtifact = {
+  contentHash: `0x${string}`;
+  metadataURI: string;
+  imageURI: string;
+  manifest: unknown;
+};
+
 export async function pinCanonicalArtifact(
   sourceText: string,
   analysis: Analysis,
@@ -20,6 +27,5 @@ export async function pinCanonicalArtifact(
   });
   const result = await response.json() as { contentHash?: `0x${string}`; metadataURI?: string; imageURI?: string; manifest?: unknown; error?: string };
   if (!response.ok || !result.contentHash || !result.metadataURI) throw new Error(result.error ?? "Unable to pin canonical artifact to IPFS.");
-  return result as { contentHash: `0x${string}`; metadataURI: string; imageURI: string; manifest: unknown };
+  return result as CanonicalArtifact;
 }
-
