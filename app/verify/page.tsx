@@ -8,6 +8,7 @@ import { WalletButton } from "../WalletButton";
 import { MALKUTA_ENGINE_ABI } from "../../lib/contract";
 import { BASE_MAINNET_CHAIN_ID, MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED } from "../../lib/network";
 import { SiteFooter } from "../SiteFooter";
+import { BrandMark } from "../BrandMark";
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -27,7 +28,7 @@ function VerifyContent() {
   return (
     <main className="verify-page">
       <header className="topbar">
-        <Link className="brand" href="/"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>PROVENANCE VERIFIER</small></span></Link>
+        <Link className="brand" href="/"><BrandMark priority /><span><strong>KINGDOM WITHIN</strong><small>PROVENANCE VERIFIER</small></span></Link>
         <div className="top-actions"><Link href="/">RETURN TO COMPOSER</Link><WalletButton /></div>
       </header>
       <section className="verify-shell">

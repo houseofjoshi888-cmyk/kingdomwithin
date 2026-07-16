@@ -6,6 +6,7 @@ import { WalletButton } from "./WalletButton";
 import { MintAction } from "./MintAction";
 import { EpochDashboard } from "./EpochDashboard";
 import { SiteFooter } from "./SiteFooter";
+import { BrandMark } from "./BrandMark";
 import {
   analyzeVerse,
   canonicalProtocolPayload,
@@ -251,7 +252,7 @@ export default function Home() {
     <main>
       <header className="topbar">
         <a className="brand" href="#composer" aria-label="Kingdom Within home">
-          <span className="brand-mark">K</span>
+          <BrandMark priority />
           <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </a>
         <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> BASE MAINNET / CANONICAL MINT</div>

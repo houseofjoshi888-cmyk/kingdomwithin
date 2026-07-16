@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SiteFooter } from "./SiteFooter";
+import { BrandMark } from "./BrandMark";
 
 type Section = { title: string; content: ReactNode };
 
@@ -8,7 +9,7 @@ export function InformationPage({ code, eyebrow, title, intro, sections, childre
   return (
     <main className="information-page">
       <header className="topbar">
-        <Link className="brand" href="/" aria-label="Kingdom Within home"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>TRUST CENTER</small></span></Link>
+        <Link className="brand" href="/" aria-label="Kingdom Within home"><BrandMark priority /><span><strong>KINGDOM WITHIN</strong><small>TRUST CENTER</small></span></Link>
         <div className="status-line"><span className="pulse" /> PUBLIC RECORD <i /> HOUSE OF JOSHI</div>
         <Link className="guide-back" href="/">RETURN TO COMPOSER <span>↗</span></Link>
       </header>
@@ -24,6 +25,7 @@ export function InformationPage({ code, eyebrow, title, intro, sections, childre
           <Link href="/faq">FAQ</Link>
           <Link href="/privacy">PRIVACY</Link>
           <Link href="/terms">TERMS</Link>
+          <Link href="/contact">CONTACT</Link>
         </nav>
         <section className="information-content">
           {sections?.map((section, index) => <article id={`section-${index + 1}`} key={section.title}><span>{String(index + 1).padStart(2, "0")}</span><div><h2>{section.title}</h2>{section.content}</div></article>)}

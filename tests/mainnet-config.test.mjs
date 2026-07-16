@@ -9,6 +9,11 @@ test("all public network configuration targets Base mainnet", () => {
   assert.match(source, /chains:\s*\[base\]/);
   assert.match(source, /BASE_MAINNET_CHAIN_ID\s*=\s*8453/);
   assert.match(source, /https:\/\/mainnet\.base\.org/);
+  assert.match(source, /https:\/\/base-rpc\.publicnode\.com/);
+  assert.match(source, /fallback\(rpcUrls\.map/);
+  assert.match(source, /stale-if-error=86400/);
+  assert.match(source, /scope=all/);
+  assert.match(source, /latestMints:\s*mandalas\.slice\(\)\.reverse\(\)/);
   assert.match(source, /0x3c626ff68e9a69526117b22d288ab71bda2b377a/i);
   assert.match(source, /MALKUTA_ENGINE_DEPLOYMENT_BLOCK\s*=\s*"48698258"/);
   assert.match(source, /MandalaMinted/);

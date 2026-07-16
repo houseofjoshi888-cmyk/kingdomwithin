@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteFooter } from "../SiteFooter";
+import { BrandMark } from "../BrandMark";
 
 const steps = [
   ["Choose a mapping", "Use the immutable Aramaic/Hebrew Standard, the universal Root-60 sexagesimal bridge, or upload a validated custom JSON mapping."],
@@ -15,7 +16,7 @@ export default function HowToUse() {
     <main className="guide-page">
       <header className="topbar">
         <Link className="brand" href="/#composer" aria-label="Kingdom Within composer">
-          <span className="brand-mark">K</span>
+          <BrandMark priority />
           <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </Link>
         <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> GUIDE</div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SiteFooter } from "../SiteFooter";
 import { WalletButton } from "../WalletButton";
+import { BrandMark } from "../BrandMark";
 
 type CollectionMint = {
   tokenId: string;
@@ -18,6 +19,9 @@ type CollectionMint = {
   rotation: number;
   scale: number;
   hue: number;
+  epochId: string;
+  protocolVersion: string;
+  verificationStatus: "verified" | "metadata_unavailable";
 };
 
 type CollectionResponse = {
@@ -25,6 +29,9 @@ type CollectionResponse = {
   indexedThroughBlock: string;
   epoch: { id: string; name: string; active: boolean };
   stats: { totalMinted: number };
+  collectionTotal: number;
+  contractTotalSupply: string;
+  verifiedTotal: number;
   latestMints: CollectionMint[];
 };
 
@@ -42,7 +49,7 @@ export default function CollectionPage() {
 
   useEffect(() => {
     let active = true;
-    fetch("/api/epoch")
+    fetch("/api/epoch?scope=all")
       .then(async (response) => {
         const result = await response.json() as CollectionResponse;
         if (!response.ok || result.status !== "ready") throw new Error("Index unavailable");
@@ -56,7 +63,7 @@ export default function CollectionPage() {
     <main className="collection-page">
       <header className="topbar">
         <Link className="brand" href="/" aria-label="Kingdom Within home">
-          <span className="brand-mark">K</span>
+          <BrandMark priority />
           <span><strong>KINGDOM WITHIN</strong><small>SOVEREIGN COLLECTION</small></span>
         </Link>
         <div className="status-line"><span className="pulse" /> BASE MAINNET <i /> VERIFIED ARTIFACTS</div>
@@ -69,9 +76,9 @@ export default function CollectionPage() {
           <h1>Every signal,<br /><em>held in form.</em></h1>
         </div>
         <div className="collection-summary">
-          <p>Canonical mandalas whose metadata has passed the immutable on-chain content-hash check.</p>
+          <p>Every Malkuta mint across every epoch, read from Base mainnet. Canonical artifacts are visibly distinguished from tokens whose public metadata is still unavailable.</p>
           <dl>
-            <div><dt>VERIFIED MINTS</dt><dd>{state === "loading" ? "…" : data?.stats.totalMinted ?? 0}</dd></div>
+            <div><dt>INDEXED MINTS</dt><dd>{state === "loading" ? "…" : data?.collectionTotal ?? 0}</dd></div>
             <div><dt>CURRENT EPOCH</dt><dd>{data?.epoch.name ?? "GENESIS"}</dd></div>
             <div><dt>NETWORK</dt><dd>BASE</dd></div>
           </dl>
@@ -80,7 +87,7 @@ export default function CollectionPage() {
 
       <section className="collection-shell" aria-live="polite">
         <div className="collection-bar">
-          <span>CANONICAL COLLECTION</span>
+          <span>COMPLETE ON-CHAIN COLLECTION</span>
           <small>{data ? `INDEXED THROUGH BLOCK ${data.indexedThroughBlock}` : "READING THE ARCHIVE"}</small>
         </div>
 
@@ -94,6 +101,7 @@ export default function CollectionPage() {
               <div className="collection-art" style={{ "--mandala-hue": mint.hue } as React.CSSProperties}>
                 {mint.imageURI ? <div className="collection-image" role="img" aria-label={`Canonical artwork for Malkuta Mandala ${mint.tokenId}`} style={{ backgroundImage: `url(${JSON.stringify(ipfsUrl(mint.imageURI)).slice(1, -1)})` }} /> : <div className="collection-fallback"><i /><i /><i /><b>{mint.symmetry}</b></div>}
                 <span>#{mint.tokenId.padStart(3, "0")}</span>
+                <small className={`collection-verification ${mint.verificationStatus}`}>{mint.verificationStatus === "verified" ? "✓ VERIFIED" : "METADATA PENDING"}</small>
               </div>
               <div className="collection-card-copy">
                 <div><small>MALKUTA MANDALA</small><b>{mint.sourceText || `Signal ${mint.numericalSignature}`}</b></div>
@@ -103,7 +111,7 @@ export default function CollectionPage() {
                   <div><dt>PHASE</dt><dd>{mint.rotation}°</dd></div>
                   <div><dt>HUE</dt><dd><i style={{ backgroundColor: `hsl(${mint.hue}, 72%, 58%)` }} />{mint.hue}°</dd></div>
                 </dl>
-                <div className="collection-owner"><span>HELD BY {shortAddress(mint.owner)}</span><span>{mint.mappingMode}</span></div>
+                <div className="collection-owner"><span>MINTED TO {shortAddress(mint.owner)}</span><span>EPOCH {mint.epochId} · {mint.mappingMode || mint.protocolVersion}</span></div>
                 <div className="collection-links"><Link href={`/verify?token=${mint.tokenId}`}>VERIFY</Link><a href={`https://basescan.org/tx/${mint.transactionHash}`} target="_blank" rel="noreferrer">TRANSACTION ↗</a></div>
               </div>
             </article>

@@ -10,6 +10,7 @@ import { BASE_MAINNET_CHAIN_ID, MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURE
 import { MALKUTA_ENGINE_ABI } from "../../lib/contract";
 import { pinCanonicalArtifact } from "../../lib/pinning";
 import { SiteFooter } from "../SiteFooter";
+import { BrandMark } from "../BrandMark";
 
 const ADMIN_ROLE = keccak256(toBytes("ADMIN_ROLE"));
 
@@ -104,7 +105,7 @@ export default function AdminDashboard() {
   return (
     <main className="admin-page">
       <header className="topbar">
-        <Link className="brand" href="/"><span className="brand-mark">K</span><span><strong>KINGDOM WITHIN</strong><small>INTERNAL ADMIN</small></span></Link>
+        <Link className="brand" href="/"><BrandMark priority /><span><strong>KINGDOM WITHIN</strong><small>INTERNAL ADMIN</small></span></Link>
         <div className="top-actions"><Link href="/">RETURN TO COMPOSER</Link><WalletButton /></div>
       </header>
       <section className="admin-shell">

@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Kingdom Within — Malkuta Protocol",
   description: "A deterministic scripture geometry instrument translating sacred text into verifiable frequency, color, and form.",
+  icons: { icon: "/house-of-joshi-mark.png", apple: "/house-of-joshi-mark.png" },
 };
 
 export const viewport: Viewport = {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { InformationPage } from "../InformationPage";
 
 export const metadata: Metadata = { title: "FAQ — Kingdom Within", description: "Answers about the Malkuta Protocol, canonical minting, IPFS, Base, royalties, and verification." };
@@ -11,10 +12,10 @@ const questions = [
   ["What does minting cost?", "The current Genesis Epoch price is 0.03 ETH, plus Base network gas. The contract administrator can set the price for a current or future epoch. Your wallet always shows the transaction value before approval."],
   ["How many NFTs can exist?", "The protocol has no fixed maximum supply. It is organized into named epochs, creating a growing archive instead of a capped edition."],
   ["Are there creator royalties?", "Yes. The contract reports a 7% ERC-2981 royalty for secondary sales. A marketplace must support and honor ERC-2981 for that royalty to be paid; on-chain royalty signaling does not force every marketplace to collect it."],
-  ["Can a mint be refunded or reversed?", "Blockchain transactions are normally final. Review the text, geometry, price, network, and wallet address before signing. The Mint Policy explains the limited circumstances governed by mandatory law."],
+  ["Can a mint be refunded or reversed?", <>Blockchain transactions are normally final. Review the text, geometry, price, network, and wallet address before signing. The <Link href="/terms">Terms and Conditions</Link> explain transaction finality and the limited circumstances governed by mandatory law.</>],
   ["Why do I sign a message before minting?", "The signature authorizes the server to pin the artifact for your wallet. It is not the mint transaction, does not transfer funds, expires quickly, and prevents anonymous abuse of the upload service."],
-  ["How do I verify an NFT?", "Open Verify, enter the token ID, and compare its immutable provenance with the IPFS manifest. The collection includes only manifests whose bytes match the on-chain content hash."],
-  ["Why is my NFT not visible in the collection yet?", "Indexing and public IPFS gateways can take time. Confirm the transaction succeeded on Base and that the metadata URI resolves. The gallery refreshes from verified mint events."],
+  ["How do I verify an NFT?", "Open Verify, enter the token ID, and compare its immutable provenance with the IPFS manifest. Every mint appears in the collection, while the Verified badge is reserved for manifests whose exact bytes match the on-chain content hash."],
+  ["Why is my NFT not visible in the collection yet?", "The collection waits five Base blocks before indexing a mint to reduce reorganization risk. After those confirmations, every MandalaMinted event appears even if an IPFS gateway is temporarily unavailable."],
   ["Is a Malkuta NFT an investment?", "No promise of value, liquidity, appreciation, income, or utility is made. Acquire only for the artifact, provenance, and protocol participation, and only if you can bear a total loss of the purchase price."],
 ] as const;
 
