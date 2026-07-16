@@ -24,8 +24,6 @@ export function InformationPage({ code, eyebrow, title, intro, sections, childre
           <Link href="/faq">FAQ</Link>
           <Link href="/privacy">PRIVACY</Link>
           <Link href="/terms">TERMS</Link>
-          <Link href="/mint-policy">MINT POLICY</Link>
-          <Link href="/disclosures">RISK DISCLOSURES</Link>
         </nav>
         <section className="information-content">
           {sections?.map((section, index) => <article id={`section-${index + 1}`} key={section.title}><span>{String(index + 1).padStart(2, "0")}</span><div><h2>{section.title}</h2>{section.content}</div></article>)}
