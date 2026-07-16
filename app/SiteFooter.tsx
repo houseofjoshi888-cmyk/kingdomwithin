@@ -17,6 +17,11 @@ export function SiteFooter({ tagline = "THE SCRIPTURE IS THE SEED. THE PROTOCOL 
         <Link href="/collection">COLLECTION</Link>
         <Link href="/how-to-use">HOW TO USE</Link>
         <Link href="/verify">VERIFY</Link>
+        <Link href="/faq">FAQ</Link>
+        <Link href="/privacy">PRIVACY</Link>
+        <Link href="/terms">TERMS</Link>
+        <Link href="/mint-policy">MINT POLICY</Link>
+        <Link href="/disclosures">RISKS</Link>
       </nav>
       <p>{tagline}</p>
     </footer>

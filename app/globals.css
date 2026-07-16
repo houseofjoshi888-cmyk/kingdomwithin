@@ -522,3 +522,51 @@ h1 em,.anchor-heading h2 { text-shadow:0 0 42px rgba(212,169,94,.1); }
   .collection-summary dl { grid-template-columns:1fr; }
   .collection-summary dl div { border-right:0; }
 }
+
+/* Trust center and policy pages */
+.information-hero { min-height:450px; display:grid; grid-template-columns:1fr minmax(280px,.62fr); grid-template-rows:auto 1fr auto; align-items:end; gap:0 9vw; padding:78px 7vw 64px; border-bottom:1px solid rgba(212,169,94,.14); }
+.information-hero .eyebrow { grid-column:1/-1; align-self:start; }
+.information-hero h1 { grid-column:1; }
+.information-hero > p:not(.eyebrow) { grid-column:2; margin:0 0 8px; color:#999b93; font:17px/1.65 Georgia,serif; }
+.information-hero > small { grid-column:2; margin-top:25px; color:#656862; font:9px var(--font-geist-mono),monospace; letter-spacing:.14em; }
+.information-layout { display:grid; grid-template-columns:220px minmax(0,860px); gap:7vw; justify-content:center; padding:85px 6vw 105px; }
+.information-nav { position:sticky; top:35px; height:max-content; display:flex; flex-direction:column; border-top:1px solid rgba(212,169,94,.24); }
+.information-nav span,.information-nav a { min-height:43px; display:flex; align-items:center; padding:0 9px; border-bottom:1px solid var(--line); font:9px var(--font-geist-mono),monospace; letter-spacing:.13em; }
+.information-nav span { color:var(--gold); }
+.information-nav a { color:#777a73; text-decoration:none; }
+.information-nav a:hover { color:#d9b66f; background:rgba(212,169,94,.035); }
+.information-content > article { position:relative; display:grid; grid-template-columns:46px 1fr; gap:22px; padding:0 0 44px; margin:0 0 44px; border-bottom:1px solid var(--line); }
+.information-content > article > span { width:32px; height:32px; display:grid; place-items:center; color:var(--gold); border:1px solid rgba(212,169,94,.26); font:9px var(--font-geist-mono),monospace; }
+.information-content h2 { margin:2px 0 18px; color:#d7d2c5; font:400 clamp(24px,2.5vw,34px) Georgia,serif; }
+.information-content p { margin:0 0 14px; color:#94968f; font:15px/1.78 Georgia,serif; }
+.information-content p:last-child { margin-bottom:0; }
+.information-content a { color:#b69a65; text-underline-offset:4px; }
+.information-notice { max-width:1080px; margin:0 auto 100px; padding:24px 28px; border:1px solid rgba(77,182,169,.15); color:#71746e; background:rgba(77,182,169,.025); font:10px/1.65 var(--font-geist-mono),monospace; letter-spacing:.08em; text-align:center; }
+.faq-list { border-top:1px solid rgba(212,169,94,.22); }
+.faq-list details { border-bottom:1px solid var(--line); }
+.faq-list summary { min-height:72px; display:grid; grid-template-columns:40px 1fr 26px; align-items:center; gap:14px; padding:10px 8px; color:#c9c5ba; cursor:pointer; list-style:none; font:400 18px/1.35 Georgia,serif; }
+.faq-list summary::-webkit-details-marker { display:none; }
+.faq-list summary span { color:#6d706a; font:9px var(--font-geist-mono),monospace; }
+.faq-list summary i { color:var(--gold); font:normal 20px Georgia,serif; text-align:center; transition:transform .2s ease; }
+.faq-list details[open] summary i { transform:rotate(45deg); }
+.faq-list p { max-width:740px; margin:0; padding:0 48px 28px 62px; color:#8f918b; font:15px/1.75 Georgia,serif; }
+
+@media (max-width:800px) {
+  .information-hero { min-height:0; grid-template-columns:1fr; grid-template-rows:auto; gap:28px; padding:58px 24px 48px; }
+  .information-hero .eyebrow,.information-hero h1,.information-hero > p:not(.eyebrow),.information-hero > small { grid-column:1; }
+  .information-hero > p:not(.eyebrow) { font-size:15px; }
+  .information-hero > small { margin-top:0; }
+  .information-layout { grid-template-columns:1fr; gap:48px; padding:55px 22px 80px; }
+  .information-nav { position:static; display:grid; grid-template-columns:1fr 1fr; }
+  .information-nav span { grid-column:1/-1; }
+  .information-nav a { border-right:1px solid var(--line); }
+  .information-content > article { grid-template-columns:38px 1fr; gap:12px; }
+  .information-notice { margin:0 22px 70px; }
+}
+@media (max-width:480px) {
+  .information-layout { padding-inline:15px; }
+  .information-content > article { display:block; }
+  .information-content > article > span { margin-bottom:17px; }
+  .faq-list summary { grid-template-columns:30px 1fr 20px; gap:8px; font-size:16px; }
+  .faq-list p { padding:0 30px 25px 38px; font-size:14px; }
+}
