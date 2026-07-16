@@ -14,6 +14,7 @@ export function SiteFooter({ tagline = "THE SCRIPTURE IS THE SEED. THE PROTOCOL 
       </div>
       <nav aria-label="Footer navigation">
         <Link href="/">COMPOSER</Link>
+        <Link href="/collection">COLLECTION</Link>
         <Link href="/how-to-use">HOW TO USE</Link>
         <Link href="/verify">VERIFY</Link>
       </nav>

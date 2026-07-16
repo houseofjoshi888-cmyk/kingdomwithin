@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useReadContract } from "wagmi";
 import { WalletButton } from "../WalletButton";
 import { MALKUTA_ENGINE_ABI } from "../../lib/contract";
 import { BASE_MAINNET_CHAIN_ID, MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED } from "../../lib/network";
 import { SiteFooter } from "../SiteFooter";
 
-export default function VerifyPage() {
-  const [tokenInput, setTokenInput] = useState("");
+function VerifyContent() {
+  const searchParams = useSearchParams();
+  const requestedToken = searchParams.get("token") ?? "";
+  const [tokenInput, setTokenInput] = useState(/^\d+$/.test(requestedToken) ? requestedToken : "");
   const tokenId = /^\d+$/.test(tokenInput) ? BigInt(tokenInput) : undefined;
   const { data: provenance, isLoading, error } = useReadContract({
     address: MALKUTA_ENGINE_ADDRESS,
@@ -53,4 +56,8 @@ export default function VerifyPage() {
       <SiteFooter tagline="TRUST THE PROOF. PRESERVE THE RECORD." />
     </main>
   );
+}
+
+export default function VerifyPage() {
+  return <Suspense><VerifyContent /></Suspense>;
 }

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-const files = ["app/providers.tsx", "app/page.tsx", "app/admin/page.tsx", "app/verify/page.tsx", "app/api/epoch/route.ts", "app/WalletButton.tsx", "lib/network.ts", "lib/contract.ts", "PROTOCOL.md", ".env.example"];
+const files = ["app/providers.tsx", "app/page.tsx", "app/admin/page.tsx", "app/collection/page.tsx", "app/verify/page.tsx", "app/api/epoch/route.ts", "app/WalletButton.tsx", "lib/network.ts", "lib/contract.ts", "PROTOCOL.md", ".env.example"];
 const source = files.map((file) => readFileSync(file, "utf8")).join("\n");
 
 test("all public network configuration targets Base mainnet", () => {

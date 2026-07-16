@@ -255,7 +255,7 @@ export default function Home() {
           <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </a>
         <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> BASE MAINNET / CANONICAL MINT</div>
-        <div className="top-actions"><Link href="/verify">VERIFY NFT</Link><Link href="/how-to-use">HOW TO USE</Link><WalletButton /></div>
+        <div className="top-actions"><Link href="/collection">COLLECTION</Link><Link href="/verify">VERIFY NFT</Link><Link href="/how-to-use">HOW TO USE</Link><WalletButton /></div>
       </header>
 
       <section className="intro" id="composer">
