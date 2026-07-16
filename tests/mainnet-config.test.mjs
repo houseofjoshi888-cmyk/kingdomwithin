@@ -14,6 +14,8 @@ test("all public network configuration targets Base mainnet", () => {
   assert.match(source, /MandalaMinted/);
   assert.match(source, /Manifest hash mismatch/);
   assert.match(source, /https:\/\/basescan\.org/);
+  assert.match(source, /919392f900531a3721df98547c9ff9e6/);
+  assert.match(source, /walletConnect\(\{ projectId: walletConnectProjectId \}\)/);
 });
 
 test("testnet configuration cannot be introduced into public app surfaces", () => {

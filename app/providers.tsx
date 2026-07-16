@@ -7,14 +7,17 @@ import { base } from "wagmi/chains";
 import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
 import { BASE_MAINNET_RPC_URL } from "../lib/network";
 
-const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+export const REOWN_PROJECT_ID = "919392f900531a3721df98547c9ff9e6";
+
+const walletConnectProjectId =
+  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID?.trim() || REOWN_PROJECT_ID;
 
 const config = createConfig({
   chains: [base],
   connectors: [
     injected(),
     coinbaseWallet({ appName: "Kingdom Within" }),
-    ...(walletConnectProjectId ? [walletConnect({ projectId: walletConnectProjectId })] : []),
+    walletConnect({ projectId: walletConnectProjectId }),
   ],
   transports: {
     [base.id]: http(BASE_MAINNET_RPC_URL),
