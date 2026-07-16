@@ -9,8 +9,8 @@ test("all public network configuration targets Base mainnet", () => {
   assert.match(source, /chains:\s*\[base\]/);
   assert.match(source, /BASE_MAINNET_CHAIN_ID\s*=\s*8453/);
   assert.match(source, /https:\/\/mainnet\.base\.org/);
-  assert.match(source, /NEXT_PUBLIC_MALKUTA_ENGINE_ADDRESS/);
-  assert.match(source, /MALKUTA_DEPLOYMENT_BLOCK/);
+  assert.match(source, /0x3c626ff68e9a69526117b22d288ab71bda2b377a/i);
+  assert.match(source, /MALKUTA_ENGINE_DEPLOYMENT_BLOCK\s*=\s*"48698258"/);
   assert.match(source, /MandalaMinted/);
   assert.match(source, /Manifest hash mismatch/);
   assert.match(source, /https:\/\/basescan\.org/);

@@ -96,6 +96,8 @@ Root-60 is defined by this exact function after normalization: add `normalized.c
 
 `MalkutaEngine.sol` is the canonical deployable contract. It uses OpenZeppelin v5 `ERC721URIStorage`, `ERC721Royalty`, `AccessControl`, and `ReentrancyGuard`. Each mint atomically sets an immutable marketplace-readable `tokenURI`, stores the manifest Keccak-256 digest and protocol provenance, increments `totalSupply`, and emits the complete `MandalaMinted` record. There is no function that can replace a token URI or provenance after mint.
 
+The canonical Base mainnet deployment is `0x3C626ff68e9a69526117B22D288ab71bdA2B377a`, created at block `48,698,258`. The Composer, verifier, administrator controls, and Epoch indexer are bound to this deployment.
+
 Token IDs are deterministic verification keys: `uint256(keccak256(abi.encodePacked(recipient, contentHash)))`. The contract enforces this derivation, preventing arbitrary token-ID squatting and ensuring one recipient cannot mint the same canonical manifest twice.
 
 The contract exposes an `ADMIN_ROLE`-restricted `airdrop(recipient, tokenId, contentHash, protocolVersion, metadataURI)` function. It lets an administrator pay the gas to mint directly to a recipient while recording the same immutable artifact and provenance as the public mint path. The recipient does not submit a transaction or pay gas.

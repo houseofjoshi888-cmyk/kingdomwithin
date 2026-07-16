@@ -3,7 +3,7 @@ import { createPublicClient, getAddress, http, keccak256, parseAbiItem, toBytes 
 import { base } from "viem/chains";
 import { aggregateEpoch, type IndexedMandala } from "../../../lib/epoch";
 import { MALKUTA_ENGINE_ABI } from "../../../lib/contract";
-import { MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED } from "../../../lib/network";
+import { MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED, MALKUTA_ENGINE_DEPLOYMENT_BLOCK } from "../../../lib/network";
 
 export const runtime = "edge";
 
@@ -56,7 +56,7 @@ async function mapConcurrent<T, R>(items: T[], limit: number, mapper: (item: T) 
 }
 
 export async function GET(request: Request) {
-  const deploymentBlock = process.env.MALKUTA_DEPLOYMENT_BLOCK;
+  const deploymentBlock = MALKUTA_ENGINE_DEPLOYMENT_BLOCK;
   if (!MALKUTA_ENGINE_CONFIGURED || !deploymentBlock || !/^\d+$/.test(deploymentBlock)) {
     return NextResponse.json({ status: "unavailable" }, { status: 503 });
   }
