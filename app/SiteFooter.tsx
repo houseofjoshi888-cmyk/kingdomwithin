@@ -10,7 +10,7 @@ export function SiteFooter({ tagline = "THE SCRIPTURE IS THE SEED. THE PROTOCOL 
       <div className="footer-signature">
         <span>BROUGHT TO YOU BY</span>
         <strong>THE HOUSE OF JOSHI</strong>
-        <small>© 2026 HOUSE OF JOSHI · ALL RIGHTS RESERVED</small>
+        <small>© 2026 THE HOUSE OF JOSHI · ALL RIGHTS RESERVED</small>
       </div>
       <nav aria-label="Footer navigation">
         <Link href="/">COMPOSER</Link>
