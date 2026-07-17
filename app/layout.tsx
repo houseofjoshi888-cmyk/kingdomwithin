@@ -17,6 +17,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Kingdom Within — Malkuta Protocol",
   description: "A deterministic scripture geometry instrument translating sacred text into verifiable frequency, color, and form.",
+  metadataBase: new URL("https://kingdomwithin.thehouseofjoshi.com"),
+  openGraph: {
+    type: "website",
+    siteName: "Kingdom Within",
+    title: "Kingdom Within — Malkuta Protocol",
+    description: "A precision instrument translating scripture into verifiable harmonic frequency and deterministic geometric form.",
+    images: [{ url: "/og/kingdom-within-social.png", width: 1200, height: 630, alt: "Kingdom Within Malkuta Protocol precision instrument interface" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kingdom Within — Malkuta Protocol",
+    description: "Scripture → signal → form.",
+    images: ["/og/kingdom-within-social.png"],
+  },
   icons: { icon: "/house-of-joshi-mark.png", apple: "/house-of-joshi-mark.png" },
 };
 
