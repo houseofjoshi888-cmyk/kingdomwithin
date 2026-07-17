@@ -39,6 +39,21 @@ test("generation pins the canonical artifact before mint is enabled", () => {
   assert.doesNotMatch(mint.slice(mint.indexOf("async function mint()")), /pinCanonicalArtifact\(/);
 });
 
+test("mint confirmation exposes the immutable record and collection", () => {
+  const mint = readFileSync("app/MintAction.tsx", "utf8");
+  assert.match(mint, /OWNERSHIP RECORDED/);
+  assert.match(mint, /basescan\.org\/tx/);
+  assert.match(mint, /basescan\.org\/token/);
+  assert.match(mint, /href="\/collection"/);
+});
+
+test("admin price control defaults to the Genesis test price", () => {
+  const admin = readFileSync("app/admin/page.tsx", "utf8");
+  assert.match(admin, /useState\("0"\)/);
+  assert.match(admin, /useState\("Genesis"\)/);
+  assert.match(admin, /useState\("0\.0001"\)/);
+});
+
 test("epoch index failures are explicit and never presented as an empty epoch", () => {
   const route = readFileSync("app/api/epoch/route.ts", "utf8");
   const dashboard = readFileSync("app/EpochDashboard.tsx", "utf8");

@@ -16,9 +16,11 @@ type MintActionProps = {
 };
 
 export type MintActionHandle = { prepareCanonical: () => void };
+type MintReceipt = { tokenId: bigint; transactionHash: `0x${string}` };
 
 export const MintAction = forwardRef<MintActionHandle, MintActionProps>(function MintAction({ sourceText, analysis, mode, onPreparationStatus }, ref) {
   const [status, setStatus] = useState("");
+  const [mintReceipt, setMintReceipt] = useState<MintReceipt | null>(null);
   const [artifact, setArtifact] = useState<CanonicalArtifact | null>(null);
   const [artifactKey, setArtifactKey] = useState("");
   const [isPreparing, setIsPreparing] = useState(false);
@@ -86,6 +88,7 @@ export const MintAction = forwardRef<MintActionHandle, MintActionProps>(function
 
     try {
       setIsPreparing(true);
+      setMintReceipt(null);
       setStatus("SIGN THE CANONICAL UPLOAD AUTHORIZATION IN YOUR WALLET…");
       onPreparationStatus("AWAITING WALLET SIGNATURE FOR IPFS");
       const pinned = await pinCanonicalArtifact(sourceText, analysis, mode, address, (message) => signMessageAsync({ message }));
@@ -124,6 +127,7 @@ export const MintAction = forwardRef<MintActionHandle, MintActionProps>(function
       });
       setStatus("MINT SUBMITTED · WAITING FOR BASE MAINNET…");
       await publicClient.waitForTransactionReceipt({ hash });
+      setMintReceipt({ tokenId, transactionHash: hash });
       setStatus(`MINT COMPLETE · TOKEN #${tokenId.toString()} · ${hash.slice(0, 10)}…${hash.slice(-8)}`);
     } catch (error) {
       setStatus(error instanceof Error ? `MINT FAILED · ${error.message.split("\n")[0]}` : "MINT FAILED");
@@ -155,6 +159,14 @@ export const MintAction = forwardRef<MintActionHandle, MintActionProps>(function
       <div><span>BASE MAINNET MINT</span><small>{mintPrice !== undefined ? `${formatEther(mintPrice)} ETH` : "— ETH"} · EPOCH {epochId?.toString() ?? "—"} · {totalSupply?.toString() ?? "—"} MINTED</small></div>
       <button type="button" onClick={mint} disabled={!ready}>{buttonLabel}<b>↗</b></button>
       {visibleStatus && <output>{visibleStatus}</output>}
+      {mintReceipt && <div className="mint-discovery">
+        <div><span>OWNERSHIP RECORDED</span><small>Compatible Base marketplaces read this ERC-721 transfer and its IPFS token URI. Their discovery timing is independent of Kingdom Within.</small></div>
+        <nav aria-label="Mint record links">
+          <a href={`https://basescan.org/tx/${mintReceipt.transactionHash}`} target="_blank" rel="noreferrer">VIEW TRANSACTION ↗</a>
+          <a href={`https://basescan.org/token/${MALKUTA_ENGINE_ADDRESS}?a=${mintReceipt.tokenId.toString()}`} target="_blank" rel="noreferrer">VIEW TOKEN ↗</a>
+          <a href="/collection">VIEW COLLECTION ↗</a>
+        </nav>
+      </div>}
     </div>
   );
 });

@@ -380,7 +380,7 @@ export default function Home() {
       <section className="anchor-section">
         <div className="anchor-heading"><p className="eyebrow"><span>05</span> SOVEREIGN ARCHIVE</p><h2>Truth, made permanent.</h2><div className="anchor-sigil" aria-hidden="true"><i /><i /><span>∞</span></div></div>
         <div className="chain-specs">
-          <div><span>CURRENT EPOCH</span><b>GENESIS</b><small>#0 · 0.03 ETH · ACTIVE</small></div>
+          <div><span>CURRENT EPOCH</span><b>GENESIS</b><small>#0 · ACTIVE · PRICE READ ON-CHAIN</small></div>
           <div><span>PROVENANCE</span><b>IMMUTABLE</b><small>IPFS · HASH · VERSION · EPOCH</small></div>
           <div><span>MINT PATHS</span><b>PUBLIC + ADMIN</b><small>PAID MINT · GAS-SPONSORED AIRDROP</small></div>
         </div>

@@ -21,9 +21,9 @@ export default function AdminDashboard() {
   const [inputText, setInputText] = useState("");
   const [status, setStatus] = useState("");
   const [prepared, setPrepared] = useState<PreparedAirdrop | null>(null);
-  const [epochIdInput, setEpochIdInput] = useState("1");
-  const [epochName, setEpochName] = useState("Epoch 2026");
-  const [epochPrice, setEpochPrice] = useState("0.03");
+  const [epochIdInput, setEpochIdInput] = useState("0");
+  const [epochName, setEpochName] = useState("Genesis");
+  const [epochPrice, setEpochPrice] = useState("0.0001");
   const [epochActive, setEpochActive] = useState(true);
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
