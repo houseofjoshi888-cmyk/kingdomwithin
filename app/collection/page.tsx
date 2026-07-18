@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { SiteFooter } from "../SiteFooter";
 import { WalletButton } from "../WalletButton";
 import { BrandMark } from "../BrandMark";
+import { MALKUTA_ENGINE_ADDRESS } from "../../lib/network";
 
 type CollectionMint = {
   tokenId: string;
@@ -112,7 +113,11 @@ export default function CollectionPage() {
                   <div><dt>HUE</dt><dd><i style={{ backgroundColor: `hsl(${mint.hue}, 72%, 58%)` }} />{mint.hue}°</dd></div>
                 </dl>
                 <div className="collection-owner"><span>MINTED TO {shortAddress(mint.owner)}</span><span>EPOCH {mint.epochId} · {mint.mappingMode || mint.protocolVersion}</span></div>
-                <div className="collection-links"><Link href={`/verify?token=${mint.tokenId}`}>VERIFY</Link><a href={`https://basescan.org/tx/${mint.transactionHash}`} target="_blank" rel="noreferrer">TRANSACTION ↗</a></div>
+                <div className="collection-links">
+                  <Link href={`/verify?token=${mint.tokenId}`}>VERIFY</Link>
+                  <a href={`https://opensea.io/assets/base/${MALKUTA_ENGINE_ADDRESS}/${mint.tokenId}`} target="_blank" rel="noreferrer">VIEW ON OPENSEA ↗</a>
+                  <a href={`https://basescan.org/tx/${mint.transactionHash}`} target="_blank" rel="noreferrer">TRANSACTION ↗</a>
+                </div>
               </div>
             </article>
           ))}

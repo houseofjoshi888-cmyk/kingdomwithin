@@ -47,6 +47,12 @@ test("mint confirmation exposes the immutable record and collection", () => {
   assert.match(mint, /href="\/collection"/);
 });
 
+test("collection cards link every NFT to its OpenSea asset page", () => {
+  const collection = readFileSync("app/collection/page.tsx", "utf8");
+  assert.match(collection, /opensea\.io\/assets\/base/);
+  assert.match(collection, /VIEW ON OPENSEA/);
+});
+
 test("admin price control defaults to the Genesis test price", () => {
   const admin = readFileSync("app/admin/page.tsx", "utf8");
   assert.match(admin, /useState\("0"\)/);
