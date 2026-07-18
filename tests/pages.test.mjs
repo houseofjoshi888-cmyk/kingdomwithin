@@ -60,6 +60,8 @@ test("epoch index failures are explicit and never presented as an empty epoch", 
   assert.match(route, /runtime = "nodejs"/);
   assert.match(route, /maxDuration = 60/);
   assert.match(route, /contractTotalSupply > BigInt\(0\)/);
+  assert.match(route, /Scan newest/);
+  assert.match(route, /BigInt\(logs\.length\) >= contractTotalSupply/);
   assert.match(dashboard, /INDEXER TEMPORARILY UNAVAILABLE/);
   assert.match(dashboard, /NO EMPTY-EPOCH ASSUMPTION HAS BEEN MADE/);
 });

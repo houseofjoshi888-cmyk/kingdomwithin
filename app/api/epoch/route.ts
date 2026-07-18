@@ -22,6 +22,12 @@ const ATTRIBUTE_NAMES = {
 type Attribute = { trait_type?: string; value?: string | number };
 type Manifest = { image?: string; attributes?: Attribute[] };
 type CollectionMandala = IndexedMandala & { verificationStatus: "verified" | "metadata_unavailable"; epochId: string; protocolVersion: string; contentHash: string };
+type MintLog = {
+  args: { tokenId?: bigint; epochId?: bigint; recipient?: `0x${string}`; contentHash?: `0x${string}`; protocolVersion?: string; metadataURI?: string; price?: bigint };
+  blockNumber: bigint | null;
+  logIndex: number | null;
+  transactionHash: `0x${string}` | null;
+};
 const CONFIRMATION_BLOCKS = BigInt(5);
 
 function ipfsUrls(uri: string) {
@@ -70,18 +76,6 @@ async function mapConcurrent<T, R>(items: T[], limit: number, mapper: (item: T) 
   return output.filter((item): item is R => item !== null);
 }
 
-async function mapConcurrentStrict<T, R>(items: T[], limit: number, mapper: (item: T) => Promise<R>) {
-  const output = Array<R>(items.length);
-  let cursor = 0;
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (cursor < items.length) {
-      const index = cursor++;
-      output[index] = await mapper(items[index]);
-    }
-  }));
-  return output;
-}
-
 export async function GET(request: Request) {
   const deploymentBlock = MALKUTA_ENGINE_DEPLOYMENT_BLOCK;
   if (!MALKUTA_ENGINE_CONFIGURED || !deploymentBlock || !/^\d+$/.test(deploymentBlock)) {
@@ -105,18 +99,29 @@ export async function GET(request: Request) {
     const epoch = await client.readContract({ address: MALKUTA_ENGINE_ADDRESS, abi: MALKUTA_ENGINE_ABI, functionName: "epochs", args: [epochId] });
     const latestBlock = await client.getBlockNumber();
     const indexedBlock = latestBlock > CONFIRMATION_BLOCKS ? latestBlock - CONFIRMATION_BLOCKS : latestBlock;
-    const chunkSize = BigInt(2_000);
+    // Base public RPCs cap eth_getLogs to a 10,000-block range. Scan newest
+    // first and stop once the on-chain supply has been found, so a sparse new
+    // collection never times out while re-reading its entire deployment history.
+    const chunkSize = BigInt(9_999);
     const ranges: Array<{ fromBlock: bigint; toBlock: bigint }> = [];
+    const logs: MintLog[] = [];
     if (contractTotalSupply > BigInt(0)) {
-      for (let fromBlock = BigInt(deploymentBlock); fromBlock <= indexedBlock; fromBlock += chunkSize) {
-        const toBlock = fromBlock + chunkSize - BigInt(1) > indexedBlock ? indexedBlock : fromBlock + chunkSize - BigInt(1);
+      let toBlock = indexedBlock;
+      while (toBlock >= BigInt(deploymentBlock)) {
+        const fromBlock = toBlock >= BigInt(deploymentBlock) + chunkSize - BigInt(1)
+          ? toBlock - chunkSize + BigInt(1)
+          : BigInt(deploymentBlock);
         ranges.push({ fromBlock, toBlock });
+        const group = await (allEpochs
+          ? client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, fromBlock, toBlock })
+          : client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, args: { epochId }, fromBlock, toBlock })) as MintLog[];
+        logs.unshift(...group);
+        if (allEpochs && BigInt(logs.length) >= contractTotalSupply) break;
+        if (fromBlock === BigInt(deploymentBlock)) break;
+        toBlock = fromBlock - BigInt(1);
       }
     }
-    const logGroups = await mapConcurrentStrict(ranges, 2, ({ fromBlock, toBlock }) => allEpochs
-      ? client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, fromBlock, toBlock })
-      : client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, args: { epochId }, fromBlock, toBlock }));
-    const logs = logGroups.flat();
+    logs.sort((a, b) => Number((a.blockNumber ?? BigInt(0)) - (b.blockNumber ?? BigInt(0))) || (a.logIndex ?? 0) - (b.logIndex ?? 0));
 
     const blockNumbers = Array.from(new Set(logs.map((log) => log.blockNumber?.toString()).filter(Boolean))) as string[];
     const timestamps = new Map<string, number>();
@@ -127,7 +132,7 @@ export async function GET(request: Request) {
     });
 
     const mandalas = await mapConcurrent(logs, 8, async (log): Promise<CollectionMandala | null> => {
-      if (!log.args.metadataURI || !log.args.contentHash || log.args.tokenId === undefined || !log.args.recipient) return null;
+      if (!log.args.metadataURI || !log.args.contentHash || log.args.tokenId === undefined || !log.args.recipient || !log.transactionHash) return null;
       let manifest: Manifest = {};
       let verificationStatus: CollectionMandala["verificationStatus"] = "verified";
       try { manifest = await resolveManifest(log.args.metadataURI, log.args.contentHash); }
