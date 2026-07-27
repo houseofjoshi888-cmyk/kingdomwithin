@@ -108,7 +108,7 @@ export default function AdminDashboard() {
     <main className="admin-page">
       <header className="topbar">
         <Link className="brand" href="/"><BrandMark priority /><span><strong>KINGDOM WITHIN</strong><small>INTERNAL ADMIN</small></span></Link>
-        <div className="top-actions"><Link href="/">RETURN TO COMPOSER</Link><WalletButton /></div>
+        <div className="top-actions"><Link href="/">COMPOSER</Link><Link href="/staking">STAKING</Link><WalletButton /></div>
       </header>
       <section className="admin-shell">
         <div className="admin-intro">
