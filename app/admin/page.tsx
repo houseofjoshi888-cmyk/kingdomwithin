@@ -11,6 +11,8 @@ import { MALKUTA_ENGINE_ABI } from "../../lib/contract";
 import { pinCanonicalArtifact } from "../../lib/pinning";
 import { SiteFooter } from "../SiteFooter";
 import { BrandMark } from "../BrandMark";
+import { StakingAdminControls } from "./StakingAdminControls";
+import "./staking-controls.css";
 
 const ADMIN_ROLE = keccak256(toBytes("ADMIN_ROLE"));
 
@@ -151,6 +153,7 @@ export default function AdminDashboard() {
           <button type="button" onClick={withdrawTreasury} disabled={!canAdmin || !treasury?.value}>WITHDRAW TO HOUSE WALLET <span>→</span></button>
         </div>
       </section>
+      <StakingAdminControls />
       {status && <output className="admin-global-status">{status}</output>}
       <SiteFooter tagline="SOVEREIGN CONTROL. IMMUTABLE PROVENANCE." />
     </main>
