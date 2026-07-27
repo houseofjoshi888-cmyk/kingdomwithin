@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "./staking.css";
 
 export const metadata: Metadata = {
   title: "Malkuta Staking — Kingdom Within",
