@@ -236,7 +236,7 @@ export default function StakingDashboard() {
       </header>
 
       <section className="staking-hero">
-        <div>
+        <div className="staking-hero-title">
           <p className="eyebrow"><span>S</span> MALKUTA STAKING · BASE</p>
           <h1>Hold the signal.<br /><em>Deepen the reward.</em></h1>
         </div>
@@ -246,33 +246,48 @@ export default function StakingDashboard() {
         </div>
       </section>
 
-      <section className="staking-metrics">
-        <div><span>BASE REWARD / DAY</span><strong>{rate !== undefined ? Number(formatUnits(rate, tokenDecimals)).toLocaleString(undefined, { maximumFractionDigits: 4 }) : "—"}</strong><small>KINGJOSHI · 1×</small></div>
-        <div><span>TOTAL NFTS STAKED</span><strong>{totalStaked?.toString() ?? "—"}</strong><small>ACTIVE MANDALAS</small></div>
-        <div><span>REWARD RESERVE</span><strong>{pool !== undefined ? Number(formatUnits(pool, tokenDecimals)).toLocaleString(undefined, { maximumFractionDigits: 2 }) : "—"}</strong><small>KINGJOSHI</small></div>
-        <div><span>YOUR UNPAID REWARDS</span><strong>{unpaid !== undefined ? Number(formatUnits(unpaid, tokenDecimals)).toLocaleString(undefined, { maximumFractionDigits: 4 }) : "—"}</strong><button disabled={isPending || !unpaid} onClick={claimUnpaid}>CLAIM</button></div>
-      </section>
-
-      <section className="tier-field">
-        <div><span>01</span><strong>1×</strong><p>DAYS 0–30</p></div>
-        <div><span>02</span><strong>2×</strong><p>DAYS 31–90</p></div>
-        <div><span>03</span><strong>2.5×</strong><p>DAYS 91–180</p></div>
-        <div><span>04</span><strong>3×</strong><p>DAY 181 ONWARD</p></div>
-      </section>
-
-      <section className="staking-vault">
-        <div className="vault-heading">
-          <div><p className="eyebrow"><span>V</span> YOUR VAULT</p><h2>Malkuta Mandalas</h2></div>
-          <div className="token-lookup">
-            <label htmlFor="staking-token-id">ADD BY TOKEN ID</label>
-            <span><input id="staking-token-id" inputMode="numeric" value={manualToken} onChange={(event) => setManualToken(event.target.value)} placeholder="Token ID" /><button onClick={addToken}>ADD →</button></span>
+      <section className="staking-dashboard-shell">
+        <aside className="staking-sidebar">
+          <div className="sidebar-heading">
+            <span>STAKING OVERVIEW</span>
+            <i className={enabled && onBase ? "pulse" : ""} />
           </div>
-        </div>
-        {!isConnected && <div className="staking-empty"><i /><h3>Connect your wallet to enter the vault.</h3><p>Your Malkuta Mandalas and active stakes will appear here.</p></div>}
-        {isConnected && loadingTokens && <div className="staking-empty"><i /><h3>Reading your collection from Base…</h3></div>}
-        {isConnected && !loadingTokens && displayedTokens.length === 0 && <div className="staking-empty"><i /><h3>No Malkuta Mandalas found.</h3><p>If you own one, enter its token ID above.</p></div>}
-        <div className="stake-grid">
-          {displayedTokens.map((tokenId) => <StakeCard key={tokenId.toString()} tokenId={tokenId} wallet={address} tokenDecimals={tokenDecimals} />)}
+          <div className="sidebar-metrics">
+            <div><span>BASE REWARD / DAY</span><strong>{rate !== undefined ? Number(formatUnits(rate, tokenDecimals)).toLocaleString(undefined, { maximumFractionDigits: 4 }) : "—"}</strong><small>KINGJOSHI · 1×</small></div>
+            <div><span>TOTAL NFTS STAKED</span><strong>{totalStaked?.toString() ?? "—"}</strong><small>ACTIVE MANDALAS</small></div>
+            <div><span>REWARD RESERVE</span><strong>{pool !== undefined ? Number(formatUnits(pool, tokenDecimals)).toLocaleString(undefined, { maximumFractionDigits: 2 }) : "—"}</strong><small>KINGJOSHI</small></div>
+          </div>
+          <div className="unpaid-card">
+            <span>YOUR UNPAID REWARDS</span>
+            <strong>{unpaid !== undefined ? Number(formatUnits(unpaid, tokenDecimals)).toLocaleString(undefined, { maximumFractionDigits: 4 }) : "—"}</strong>
+            <button disabled={isPending || !unpaid} onClick={claimUnpaid}>CLAIM BALANCE <b>→</b></button>
+          </div>
+          <div className="tier-ladder">
+            <div className="tier-ladder-heading"><span>REWARD TIERS</span><small>TIME STAKED</small></div>
+            <div><span>01</span><strong>1×</strong><p>0–30 DAYS</p></div>
+            <div><span>02</span><strong>2×</strong><p>31–90 DAYS</p></div>
+            <div><span>03</span><strong>2.5×</strong><p>91–180 DAYS</p></div>
+            <div><span>04</span><strong>3×</strong><p>181+ DAYS</p></div>
+          </div>
+          <Link className="admin-panel-link" href="/staking/admin"><span>OWNER ACCESS</span><b>ADMIN PANEL →</b></Link>
+        </aside>
+
+        <div className="staking-vault">
+          <div className="vault-heading">
+            <div><p className="eyebrow"><span>V</span> YOUR VAULT</p><h2>Malkuta Mandalas</h2><small>{displayedTokens.length} TOKEN{displayedTokens.length === 1 ? "" : "S"} DISCOVERED</small></div>
+            <div className="token-lookup">
+              <label htmlFor="staking-token-id">ADD BY TOKEN ID</label>
+              <span><input id="staking-token-id" inputMode="numeric" value={manualToken} onChange={(event) => setManualToken(event.target.value)} placeholder="Token ID" /><button onClick={addToken}>ADD →</button></span>
+            </div>
+          </div>
+          <div className="vault-workspace">
+            {!isConnected && <div className="staking-empty"><i /><h3>Connect your wallet to enter the vault.</h3><p>Your Malkuta Mandalas and active stakes will appear here.</p></div>}
+            {isConnected && loadingTokens && <div className="staking-empty"><i /><h3>Reading your collection from Base…</h3></div>}
+            {isConnected && !loadingTokens && displayedTokens.length === 0 && <div className="staking-empty"><i /><h3>No Malkuta Mandalas found.</h3><p>If you own one, enter its token ID above.</p></div>}
+            <div className="stake-grid">
+              {displayedTokens.map((tokenId) => <StakeCard key={tokenId.toString()} tokenId={tokenId} wallet={address} tokenDecimals={tokenDecimals} />)}
+            </div>
+          </div>
         </div>
       </section>
       {status && <output className="admin-global-status">{status}</output>}
