@@ -11,7 +11,7 @@ export function InformationPage({ code, eyebrow, title, intro, sections, childre
       <header className="topbar">
         <Link className="brand" href="/" aria-label="Kingdom Within home"><BrandMark priority /><span><strong>KINGDOM WITHIN</strong><small>TRUST CENTER</small></span></Link>
         <div className="status-line"><span className="pulse" /> PUBLIC RECORD <i /> HOUSE OF JOSHI</div>
-        <Link className="guide-back" href="/">RETURN TO COMPOSER <span>↗</span></Link>
+        <div className="top-actions"><Link href="/staking">STAKING</Link><Link className="guide-back" href="/">RETURN TO COMPOSER <span>↗</span></Link></div>
       </header>
       <section className="information-hero">
         <p className="eyebrow"><span>{code}</span> {eyebrow}</p>
