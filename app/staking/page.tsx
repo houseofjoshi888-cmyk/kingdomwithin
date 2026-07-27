@@ -7,7 +7,6 @@ import { useAccount, useChainId, usePublicClient, useReadContract, useWriteContr
 import { BrandMark } from "../BrandMark";
 import { SiteFooter } from "../SiteFooter";
 import { WalletButton } from "../WalletButton";
-import { MALKUTA_ENGINE_ABI } from "../../lib/contract";
 import {
   BASE_MAINNET_CHAIN_ID,
   MALKUTA_ENGINE_ADDRESS,
@@ -180,8 +179,9 @@ export default function StakingDashboard() {
     setLoadingTokens(true);
     publicClient.getContractEvents({
       address: MALKUTA_ENGINE_ADDRESS,
-      abi: MALKUTA_ENGINE_ABI,
-      eventName: "MandalaMinted",
+      abi: ERC721_STAKING_ABI,
+      eventName: "Transfer",
+      args: { to: address },
       fromBlock: BigInt(MALKUTA_ENGINE_DEPLOYMENT_BLOCK),
       toBlock: "latest",
     }).then((logs) => {
@@ -190,7 +190,7 @@ export default function StakingDashboard() {
         .map((id) => BigInt(id!));
       setTokenIds(ids);
     }).catch(() => {
-      if (!cancelled) setStatus("THE COLLECTION INDEX IS TEMPORARILY UNAVAILABLE · ENTER A TOKEN ID BELOW");
+      if (!cancelled) setStatus("WALLET NFT DISCOVERY IS TEMPORARILY UNAVAILABLE · ENTER A TOKEN ID BELOW");
     }).finally(() => {
       if (!cancelled) setLoadingTokens(false);
     });
