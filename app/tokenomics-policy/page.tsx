@@ -94,7 +94,7 @@ export default function TokenomicsPolicyPage() {
             <>
               <p>Once a policy decision is authorized, the contract owner connects the designated owner wallet on Base, opens the staking controls, enters the new daily rate, reviews the token-unit conversion, and submits <code>setRewardRatePerDay</code> through the deployed UUPS proxy.</p>
               <p>The operator must verify the proxy address, owner account, Base chain, resulting <code>rewardRatePerDay</code> value, and emitted rate-update transaction before announcing completion. The implementation contract must never be used as the operational staking address.</p>
-              <p><Link href="/admin">OPEN ADMIN CONTROLS ↗</Link> &nbsp; <Link href="/staking">VIEW STAKING DASHBOARD ↗</Link></p>
+              <p><Link href="/staking">VIEW STAKING DASHBOARD ↗</Link></p>
             </>
           ),
         },
