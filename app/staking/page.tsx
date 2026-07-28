@@ -90,12 +90,13 @@ function StakeCard({ tokenId, wallet, tokenDecimals }: { tokenId: bigint; wallet
 
   useEffect(() => {
     if (!tokenUri) return;
+    const uri = tokenUri;
     let cancelled = false;
     async function loadArtwork() {
       try {
-        const metadata = tokenUri.startsWith("data:application/json;base64,")
-          ? JSON.parse(atob(tokenUri.slice("data:application/json;base64,".length)))
-          : await fetch(publicAssetUrl(tokenUri)).then((response) => {
+        const metadata = uri.startsWith("data:application/json;base64,")
+          ? JSON.parse(atob(uri.slice("data:application/json;base64,".length)))
+          : await fetch(publicAssetUrl(uri)).then((response) => {
               if (!response.ok) throw new Error("Metadata unavailable");
               return response.json();
             });
@@ -207,20 +208,24 @@ export default function StakingDashboard() {
       setTokenIds([]);
       return;
     }
+    const client = publicClient;
+    const wallet = address;
     let cancelled = false;
     setLoadingTokens(true);
     async function discoverWalletTokens() {
-      const latestBlock = await publicClient.getBlockNumber();
+      const latestBlock = await client.getBlockNumber();
       const firstBlock = BigInt(MALKUTA_ENGINE_DEPLOYMENT_BLOCK);
-      const chunkSize = 25_000n;
+      const chunkSize = BigInt(25_000);
       const logs = [];
       for (let fromBlock = firstBlock; fromBlock <= latestBlock; fromBlock += chunkSize) {
-        const toBlock = fromBlock + chunkSize - 1n > latestBlock ? latestBlock : fromBlock + chunkSize - 1n;
-        const chunk = await publicClient.getContractEvents({
+        const toBlock = fromBlock + chunkSize - BigInt(1) > latestBlock
+          ? latestBlock
+          : fromBlock + chunkSize - BigInt(1);
+        const chunk = await client.getContractEvents({
           address: MALKUTA_ENGINE_ADDRESS,
           abi: ERC721_STAKING_ABI,
           eventName: "Transfer",
-          args: { to: address },
+          args: { to: wallet },
           fromBlock,
           toBlock,
         });
@@ -230,20 +235,20 @@ export default function StakingDashboard() {
         .map((id) => BigInt(id!));
       const verified = await Promise.all(candidates.map(async (tokenId) => {
         const [owner, stake] = await Promise.all([
-          publicClient.readContract({
+          client.readContract({
             address: MALKUTA_ENGINE_ADDRESS,
             abi: ERC721_STAKING_ABI,
             functionName: "ownerOf",
             args: [tokenId],
           }),
-          publicClient.readContract({
+          client.readContract({
             address: MALKUTA_STAKING_ADDRESS,
             abi: MALKUTA_STAKING_ABI,
             functionName: "vault",
             args: [MALKUTA_ENGINE_ADDRESS, tokenId],
           }),
         ]);
-        return sameAddress(owner, address) || sameAddress(stake[0], address) ? tokenId : null;
+        return sameAddress(owner, wallet) || sameAddress(stake[0], wallet) ? tokenId : null;
       }));
       if (cancelled) return;
       setTokenIds(verified.filter((tokenId): tokenId is bigint => tokenId !== null));
