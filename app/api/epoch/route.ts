@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { createPublicClient, fallback, getAddress, http, keccak256, parseAbiItem, toBytes } from "viem";
+import { createPublicClient, getAddress, http, keccak256, toBytes } from "viem";
 import { base } from "viem/chains";
 import { aggregateEpoch, type IndexedMandala } from "../../../lib/epoch";
 import { MALKUTA_ENGINE_ABI } from "../../../lib/contract";
-import { BASE_MAINNET_RPC_FALLBACK_URL, BASE_MAINNET_RPC_URL, MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED, MALKUTA_ENGINE_DEPLOYMENT_BLOCK } from "../../../lib/network";
+import { BASE_MAINNET_RPC_URL, MALKUTA_ENGINE_ADDRESS, MALKUTA_ENGINE_CONFIGURED, MALKUTA_ENGINE_DEPLOYMENT_BLOCK } from "../../../lib/network";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const mintEvent = parseAbiItem("event MandalaMinted(uint256 indexed tokenId, uint256 indexed epochId, address indexed recipient, address operator, bytes32 contentHash, string protocolVersion, string metadataURI, uint256 price)");
+const BLOCKSCOUT_API_URL = "https://base.blockscout.com/api/v2";
+const MANDALA_MINTED_METHOD_ID = "817ffea9";
 const ATTRIBUTE_NAMES = {
   source: "Source Text",
   signature: "Numerical Signature",
@@ -27,6 +28,17 @@ type MintLog = {
   blockNumber: bigint | null;
   logIndex: number | null;
   transactionHash: `0x${string}` | null;
+};
+type BlockscoutParameter = { name: string; value: string };
+type BlockscoutLog = {
+  block_number: number;
+  index: number;
+  transaction_hash: `0x${string}`;
+  decoded?: { method_id?: string; parameters?: BlockscoutParameter[] };
+};
+type BlockscoutLogsResponse = {
+  items?: BlockscoutLog[];
+  next_page_params?: Record<string, string | number> | null;
 };
 const CONFIRMATION_BLOCKS = BigInt(5);
 
@@ -76,6 +88,59 @@ async function mapConcurrent<T, R>(items: T[], limit: number, mapper: (item: T) 
   return output.filter((item): item is R => item !== null);
 }
 
+async function readMintLogs(contractTotalSupply: bigint, epochId: bigint, allEpochs: boolean) {
+  const logs: MintLog[] = [];
+  let pageUrl: string | null = `${BLOCKSCOUT_API_URL}/addresses/${MALKUTA_ENGINE_ADDRESS}/logs`;
+  let scannedPages = 0;
+
+  while (pageUrl) {
+    const response = await fetch(pageUrl, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(12_000),
+      next: { revalidate: 300 },
+    });
+    if (!response.ok) throw new Error(`Blockscout returned ${response.status}`);
+    const page = await response.json() as BlockscoutLogsResponse;
+    scannedPages += 1;
+
+    for (const item of page.items ?? []) {
+      if (item.decoded?.method_id?.toLowerCase() !== MANDALA_MINTED_METHOD_ID) continue;
+      const values = new Map((item.decoded.parameters ?? []).map((parameter) => [parameter.name, parameter.value]));
+      const logEpochId = values.get("epochId");
+      if (!allEpochs && logEpochId !== epochId.toString()) continue;
+      const tokenId = values.get("tokenId");
+      const recipient = values.get("recipient");
+      const contentHash = values.get("contentHash");
+      const protocolVersion = values.get("protocolVersion");
+      const metadataURI = values.get("metadataURI");
+      const price = values.get("price");
+      if (!tokenId || !recipient || !contentHash || !metadataURI) continue;
+      logs.push({
+        args: {
+          tokenId: BigInt(tokenId),
+          epochId: BigInt(logEpochId ?? "0"),
+          recipient: recipient as `0x${string}`,
+          contentHash: contentHash as `0x${string}`,
+          protocolVersion: protocolVersion ?? "",
+          metadataURI,
+          price: BigInt(price ?? "0"),
+        },
+        blockNumber: BigInt(item.block_number),
+        logIndex: item.index,
+        transactionHash: item.transaction_hash,
+      });
+    }
+
+    if (allEpochs && BigInt(logs.length) >= contractTotalSupply) break;
+    if (!page.next_page_params) break;
+    const nextUrl = new URL(`${BLOCKSCOUT_API_URL}/addresses/${MALKUTA_ENGINE_ADDRESS}/logs`);
+    Object.entries(page.next_page_params).forEach(([key, value]) => nextUrl.searchParams.set(key, String(value)));
+    pageUrl = nextUrl.toString();
+  }
+
+  return { logs, scannedPages };
+}
+
 export async function GET(request: Request) {
   const deploymentBlock = MALKUTA_ENGINE_DEPLOYMENT_BLOCK;
   if (!MALKUTA_ENGINE_CONFIGURED || !deploymentBlock || !/^\d+$/.test(deploymentBlock)) {
@@ -83,15 +148,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const rpcUrls = Array.from(new Set([
-      process.env.BASE_MAINNET_RPC_URL,
-      process.env.BASE_MAINNET_RPC_FALLBACK_URL,
-      BASE_MAINNET_RPC_URL,
-      BASE_MAINNET_RPC_FALLBACK_URL,
-    ].filter((url): url is string => Boolean(url))))
-      // PublicNode now requires a personal token for Base archive queries.
-      .filter((url) => !url.includes("publicnode.com"));
-    const client = createPublicClient({ chain: base, transport: fallback(rpcUrls.map((url) => http(url, { retryCount: 2, timeout: 12_000 })), { rank: true }) });
+    const rpcUrl = process.env.BASE_MAINNET_RPC_URL?.trim() || BASE_MAINNET_RPC_URL;
+    const client = createPublicClient({ chain: base, transport: http(rpcUrl, { retryCount: 2, timeout: 12_000 }) });
     const searchParams = new URL(request.url).searchParams;
     const requestedEpoch = searchParams.get("epoch");
     const allEpochs = searchParams.get("scope") === "all";
@@ -101,29 +159,7 @@ export async function GET(request: Request) {
     const epoch = await client.readContract({ address: MALKUTA_ENGINE_ADDRESS, abi: MALKUTA_ENGINE_ABI, functionName: "epochs", args: [epochId] });
     const latestBlock = await client.getBlockNumber();
     const indexedBlock = latestBlock > CONFIRMATION_BLOCKS ? latestBlock - CONFIRMATION_BLOCKS : latestBlock;
-    // Base public RPCs cap eth_getLogs to a 10,000-block range and burst-rate
-    // limit concurrent archive calls. Scan newest-first, one range at a time,
-    // and stop as soon as the on-chain supply has been found.
-    const chunkSize = BigInt(9_999);
-    const ranges: Array<{ fromBlock: bigint; toBlock: bigint }> = [];
-    const logs: MintLog[] = [];
-    if (contractTotalSupply > BigInt(0)) {
-      const firstBlock = BigInt(deploymentBlock);
-      let toBlock = indexedBlock;
-      while (toBlock >= firstBlock) {
-        const fromBlock = toBlock >= firstBlock + chunkSize - BigInt(1)
-          ? toBlock - chunkSize + BigInt(1)
-          : firstBlock;
-        ranges.push({ fromBlock, toBlock });
-        const group = await (allEpochs
-          ? client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, fromBlock, toBlock })
-          : client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, args: { epochId }, fromBlock, toBlock })) as MintLog[];
-        logs.unshift(...group);
-        if (allEpochs && BigInt(logs.length) >= contractTotalSupply) break;
-        if (fromBlock === firstBlock) break;
-        toBlock = fromBlock - BigInt(1);
-      }
-    }
+    const { logs, scannedPages } = await readMintLogs(contractTotalSupply, epochId, allEpochs);
     logs.sort((a, b) => Number((a.blockNumber ?? BigInt(0)) - (b.blockNumber ?? BigInt(0))) || (a.logIndex ?? 0) - (b.logIndex ?? 0));
 
     const blockNumbers = Array.from(new Set(logs.map((log) => log.blockNumber?.toString()).filter(Boolean))) as string[];
@@ -174,7 +210,7 @@ export async function GET(request: Request) {
       contractTotalSupply: contractTotalSupply.toString(),
       verifiedTotal: verifiedMandalas.length,
       rejectedManifests: mandalas.length - verifiedMandalas.length,
-      indexHealth: { scannedRanges: ranges.length, confirmations: Number(CONFIRMATION_BLOCKS), rpcEndpoints: rpcUrls.length, scope: allEpochs ? "all" : `epoch_${epochId}` },
+      indexHealth: { scannedPages, confirmations: Number(CONFIRMATION_BLOCKS), rpcEndpoints: 1, scope: allEpochs ? "all" : `epoch_${epochId}` },
     }, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=1800, stale-if-error=86400" } });
   } catch (error) {
     console.error("Epoch indexer failed", error instanceof Error ? error.message : "Unknown indexer error");
