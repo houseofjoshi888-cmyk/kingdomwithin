@@ -26,10 +26,13 @@ const compactToken = (value: bigint) => {
   const text = value.toString();
   return text.length > 16 ? `${text.slice(0, 8)}…${text.slice(-6)}` : text;
 };
+const publicAssetUrl = (uri: string) =>
+  uri.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${uri.slice(7)}` : uri;
 
 function StakeCard({ tokenId, wallet, tokenDecimals }: { tokenId: bigint; wallet?: Address; tokenDecimals: number }) {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: BASE_MAINNET_CHAIN_ID });
   const [status, setStatus] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const { writeContractAsync, isPending } = useWriteContract();
   const enabled = MALKUTA_STAKING_CONFIGURED && Boolean(wallet);
 
@@ -44,6 +47,13 @@ function StakeCard({ tokenId, wallet, tokenDecimals }: { tokenId: bigint; wallet
     address: MALKUTA_ENGINE_ADDRESS,
     abi: ERC721_STAKING_ABI,
     functionName: "getApproved",
+    args: [tokenId],
+    chainId: BASE_MAINNET_CHAIN_ID,
+  });
+  const { data: tokenUri } = useReadContract({
+    address: MALKUTA_ENGINE_ADDRESS,
+    abi: ERC721_STAKING_ABI,
+    functionName: "tokenURI",
     args: [tokenId],
     chainId: BASE_MAINNET_CHAIN_ID,
   });
@@ -78,6 +88,26 @@ function StakeCard({ tokenId, wallet, tokenDecimals }: { tokenId: bigint; wallet
   const isApproved = MALKUTA_STAKING_CONFIGURED && sameAddress(approved, MALKUTA_STAKING_ADDRESS);
   const stakedDate = stake?.[1] ? new Date(Number(stake[1]) * 1000).toLocaleDateString() : "—";
 
+  useEffect(() => {
+    if (!tokenUri) return;
+    let cancelled = false;
+    async function loadArtwork() {
+      try {
+        const metadata = tokenUri.startsWith("data:application/json;base64,")
+          ? JSON.parse(atob(tokenUri.slice("data:application/json;base64,".length)))
+          : await fetch(publicAssetUrl(tokenUri)).then((response) => {
+              if (!response.ok) throw new Error("Metadata unavailable");
+              return response.json();
+            });
+        if (!cancelled && typeof metadata.image === "string") setImageUrl(publicAssetUrl(metadata.image));
+      } catch {
+        if (!cancelled) setImageUrl("");
+      }
+    }
+    void loadArtwork();
+    return () => { cancelled = true; };
+  }, [tokenUri]);
+
   async function transact(label: string, request: Parameters<typeof writeContractAsync>[0]) {
     if (!publicClient) return;
     try {
@@ -96,7 +126,9 @@ function StakeCard({ tokenId, wallet, tokenDecimals }: { tokenId: bigint; wallet
 
   return (
     <article className={`stake-card ${isStaked ? "is-staked" : ""}`}>
-      <div className="stake-sigil"><span>MK</span><i /><i /><i /></div>
+      <div className="stake-sigil">
+        {imageUrl ? <img src={imageUrl} alt={`Malkuta Mandala #${tokenId.toString()}`} /> : <><span>MK</span><i /><i /><i /></>}
+      </div>
       <div className="stake-card-copy">
         <div className="stake-card-title">
           <span>MALKUTA MANDALA</span>
@@ -155,7 +187,7 @@ function StakeCard({ tokenId, wallet, tokenDecimals }: { tokenId: bigint; wallet
 export default function StakingDashboard() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: BASE_MAINNET_CHAIN_ID });
   const [tokenIds, setTokenIds] = useState<bigint[]>([]);
   const [manualToken, setManualToken] = useState("");
   const [loadingTokens, setLoadingTokens] = useState(false);
@@ -177,19 +209,46 @@ export default function StakingDashboard() {
     }
     let cancelled = false;
     setLoadingTokens(true);
-    publicClient.getContractEvents({
-      address: MALKUTA_ENGINE_ADDRESS,
-      abi: ERC721_STAKING_ABI,
-      eventName: "Transfer",
-      args: { to: address },
-      fromBlock: BigInt(MALKUTA_ENGINE_DEPLOYMENT_BLOCK),
-      toBlock: "latest",
-    }).then((logs) => {
-      if (cancelled) return;
-      const ids = Array.from(new Set(logs.map((log) => log.args.tokenId?.toString()).filter(Boolean)))
+    async function discoverWalletTokens() {
+      const latestBlock = await publicClient.getBlockNumber();
+      const firstBlock = BigInt(MALKUTA_ENGINE_DEPLOYMENT_BLOCK);
+      const chunkSize = 25_000n;
+      const logs = [];
+      for (let fromBlock = firstBlock; fromBlock <= latestBlock; fromBlock += chunkSize) {
+        const toBlock = fromBlock + chunkSize - 1n > latestBlock ? latestBlock : fromBlock + chunkSize - 1n;
+        const chunk = await publicClient.getContractEvents({
+          address: MALKUTA_ENGINE_ADDRESS,
+          abi: ERC721_STAKING_ABI,
+          eventName: "Transfer",
+          args: { to: address },
+          fromBlock,
+          toBlock,
+        });
+        logs.push(...chunk);
+      }
+      const candidates = Array.from(new Set(logs.map((log) => log.args.tokenId?.toString()).filter(Boolean)))
         .map((id) => BigInt(id!));
-      setTokenIds(ids);
-    }).catch(() => {
+      const verified = await Promise.all(candidates.map(async (tokenId) => {
+        const [owner, stake] = await Promise.all([
+          publicClient.readContract({
+            address: MALKUTA_ENGINE_ADDRESS,
+            abi: ERC721_STAKING_ABI,
+            functionName: "ownerOf",
+            args: [tokenId],
+          }),
+          publicClient.readContract({
+            address: MALKUTA_STAKING_ADDRESS,
+            abi: MALKUTA_STAKING_ABI,
+            functionName: "vault",
+            args: [MALKUTA_ENGINE_ADDRESS, tokenId],
+          }),
+        ]);
+        return sameAddress(owner, address) || sameAddress(stake[0], address) ? tokenId : null;
+      }));
+      if (cancelled) return;
+      setTokenIds(verified.filter((tokenId): tokenId is bigint => tokenId !== null));
+    }
+    discoverWalletTokens().catch(() => {
       if (!cancelled) setStatus("WALLET NFT DISCOVERY IS TEMPORARILY UNAVAILABLE · ENTER A TOKEN ID BELOW");
     }).finally(() => {
       if (!cancelled) setLoadingTokens(false);
@@ -269,7 +328,6 @@ export default function StakingDashboard() {
             <div><span>03</span><strong>2.5×</strong><p>91–180 DAYS</p></div>
             <div><span>04</span><strong>3×</strong><p>181+ DAYS</p></div>
           </div>
-          <Link className="admin-panel-link" href="/staking/admin"><span>OWNER ACCESS</span><b>ADMIN PANEL →</b></Link>
         </aside>
 
         <div className="staking-vault">
