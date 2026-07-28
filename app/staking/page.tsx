@@ -212,24 +212,31 @@ export default function StakingDashboard() {
     const wallet = address;
     let cancelled = false;
     setLoadingTokens(true);
+    setStatus("");
     async function discoverWalletTokens() {
       const latestBlock = await client.getBlockNumber();
       const firstBlock = BigInt(MALKUTA_ENGINE_DEPLOYMENT_BLOCK);
-      const chunkSize = BigInt(25_000);
-      const logs = [];
+      const chunkSize = BigInt(9_999);
+      const ranges = [];
       for (let fromBlock = firstBlock; fromBlock <= latestBlock; fromBlock += chunkSize) {
         const toBlock = fromBlock + chunkSize - BigInt(1) > latestBlock
           ? latestBlock
           : fromBlock + chunkSize - BigInt(1);
-        const chunk = await client.getContractEvents({
-          address: MALKUTA_ENGINE_ADDRESS,
-          abi: ERC721_STAKING_ABI,
-          eventName: "Transfer",
-          args: { to: wallet },
-          fromBlock,
-          toBlock,
-        });
-        logs.push(...chunk);
+        ranges.push({ fromBlock, toBlock });
+      }
+      const logs = [];
+      for (let index = 0; index < ranges.length; index += 6) {
+        const chunks = await Promise.all(ranges.slice(index, index + 6).map(({ fromBlock, toBlock }) =>
+          client.getContractEvents({
+            address: MALKUTA_ENGINE_ADDRESS,
+            abi: ERC721_STAKING_ABI,
+            eventName: "Transfer",
+            args: { to: wallet },
+            fromBlock,
+            toBlock,
+          }),
+        ));
+        logs.push(...chunks.flat());
       }
       const candidates = Array.from(new Set(logs.map((log) => log.args.tokenId?.toString()).filter(Boolean)))
         .map((id) => BigInt(id!));
