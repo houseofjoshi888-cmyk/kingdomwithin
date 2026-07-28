@@ -99,26 +99,26 @@ export async function GET(request: Request) {
     const epoch = await client.readContract({ address: MALKUTA_ENGINE_ADDRESS, abi: MALKUTA_ENGINE_ABI, functionName: "epochs", args: [epochId] });
     const latestBlock = await client.getBlockNumber();
     const indexedBlock = latestBlock > CONFIRMATION_BLOCKS ? latestBlock - CONFIRMATION_BLOCKS : latestBlock;
-    // Base public RPCs cap eth_getLogs to a 10,000-block range. Scan newest
-    // first and stop once the on-chain supply has been found, so a sparse new
-    // collection never times out while re-reading its entire deployment history.
+    // Base public RPCs cap eth_getLogs to a 10,000-block range. Build compatible
+    // ranges and read a small batch concurrently to stay within serverless limits.
     const chunkSize = BigInt(9_999);
     const ranges: Array<{ fromBlock: bigint; toBlock: bigint }> = [];
     const logs: MintLog[] = [];
     if (contractTotalSupply > BigInt(0)) {
-      let toBlock = indexedBlock;
-      while (toBlock >= BigInt(deploymentBlock)) {
-        const fromBlock = toBlock >= BigInt(deploymentBlock) + chunkSize - BigInt(1)
-          ? toBlock - chunkSize + BigInt(1)
-          : BigInt(deploymentBlock);
+      const firstBlock = BigInt(deploymentBlock);
+      for (let fromBlock = firstBlock; fromBlock <= indexedBlock; fromBlock += chunkSize) {
+        const toBlock = fromBlock + chunkSize - BigInt(1) > indexedBlock
+          ? indexedBlock
+          : fromBlock + chunkSize - BigInt(1);
         ranges.push({ fromBlock, toBlock });
-        const group = await (allEpochs
-          ? client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, fromBlock, toBlock })
-          : client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, args: { epochId }, fromBlock, toBlock })) as MintLog[];
-        logs.unshift(...group);
-        if (allEpochs && BigInt(logs.length) >= contractTotalSupply) break;
-        if (fromBlock === BigInt(deploymentBlock)) break;
-        toBlock = fromBlock - BigInt(1);
+      }
+      for (let index = 0; index < ranges.length; index += 2) {
+        const groups = await Promise.all(ranges.slice(index, index + 2).map(({ fromBlock, toBlock }) =>
+          (allEpochs
+            ? client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, fromBlock, toBlock })
+            : client.getLogs({ address: MALKUTA_ENGINE_ADDRESS, event: mintEvent, args: { epochId }, fromBlock, toBlock })) as Promise<MintLog[]>,
+        ));
+        logs.push(...groups.flat());
       }
     }
     logs.sort((a, b) => Number((a.blockNumber ?? BigInt(0)) - (b.blockNumber ?? BigInt(0))) || (a.logIndex ?? 0) - (b.logIndex ?? 0));
