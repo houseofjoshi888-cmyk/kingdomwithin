@@ -29,7 +29,7 @@ function VerifyContent() {
     <main className="verify-page">
       <header className="topbar">
         <Link className="brand" href="/"><BrandMark priority /><span><strong>KINGDOM WITHIN</strong><small>PROVENANCE VERIFIER</small></span></Link>
-        <div className="top-actions"><Link href="/">RETURN TO COMPOSER</Link><WalletButton /></div>
+        <div className="top-actions"><Link href="/">COMPOSER</Link><Link href="/staking">STAKING</Link><WalletButton /></div>
       </header>
       <section className="verify-shell">
         <div>

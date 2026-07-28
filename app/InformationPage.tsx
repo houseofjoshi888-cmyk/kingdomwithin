@@ -5,24 +5,25 @@ import { BrandMark } from "./BrandMark";
 
 type Section = { title: string; content: ReactNode };
 
-export function InformationPage({ code, eyebrow, title, intro, sections, children }: { code: string; eyebrow: string; title: ReactNode; intro: string; sections?: Section[]; children?: ReactNode }) {
+export function InformationPage({ code, eyebrow, title, intro, sections, children, lastUpdated = "16 JULY 2026" }: { code: string; eyebrow: string; title: ReactNode; intro: string; sections?: Section[]; children?: ReactNode; lastUpdated?: string }) {
   return (
     <main className="information-page">
       <header className="topbar">
         <Link className="brand" href="/" aria-label="Kingdom Within home"><BrandMark priority /><span><strong>KINGDOM WITHIN</strong><small>TRUST CENTER</small></span></Link>
         <div className="status-line"><span className="pulse" /> PUBLIC RECORD <i /> HOUSE OF JOSHI</div>
-        <Link className="guide-back" href="/">RETURN TO COMPOSER <span>↗</span></Link>
+        <div className="top-actions"><Link href="/staking">STAKING</Link><Link className="guide-back" href="/">RETURN TO COMPOSER <span>↗</span></Link></div>
       </header>
       <section className="information-hero">
         <p className="eyebrow"><span>{code}</span> {eyebrow}</p>
         <h1>{title}</h1>
         <p>{intro}</p>
-        <small>LAST UPDATED · 16 JULY 2026</small>
+        <small>LAST UPDATED · {lastUpdated}</small>
       </section>
       <div className="information-layout">
         <nav className="information-nav" aria-label="Trust center">
           <span>TRUST CENTER</span>
           <Link href="/faq">FAQ</Link>
+          <Link href="/tokenomics-policy">TOKENOMICS POLICY</Link>
           <Link href="/privacy">PRIVACY</Link>
           <Link href="/terms">TERMS</Link>
           <Link href="/contact">CONTACT</Link>

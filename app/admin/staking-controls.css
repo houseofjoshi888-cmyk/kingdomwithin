@@ -1,0 +1,31 @@
+.staking-admin-section { margin:0 3.4vw 100px; border:1px solid var(--line); background:linear-gradient(145deg,rgba(212,169,94,.035),transparent 38%); }
+.staking-admin-title { min-height:210px; display:grid; grid-template-columns:1.1fr .9fr; align-items:end; gap:7vw; padding:40px; border-bottom:1px solid var(--line); }
+.staking-admin-title h2 { margin:0; color:#d8d5ca; font:400 clamp(38px,4vw,58px)/.98 Georgia,serif; letter-spacing:-.035em; }
+.staking-admin-title h2 em { color:var(--gold); font-weight:400; }
+.staking-admin-title .admin-access { margin:0; }
+.staking-admin-summary { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--line); }
+.staking-admin-summary > div { min-height:132px; display:flex; flex-direction:column; padding:24px; border-right:1px solid var(--line); }
+.staking-admin-summary > div:last-child { border-right:0; }
+.staking-admin-summary span,.staking-control-grid > * > span { color:#686a64; font:7px var(--font-geist-mono),monospace; letter-spacing:.14em; }
+.staking-admin-summary strong { margin-top:18px; color:#d8d5ca; font:28px Georgia,serif; font-weight:400; }
+.staking-admin-summary small { margin-top:6px; color:var(--gold); font:6px var(--font-geist-mono),monospace; letter-spacing:.12em; }
+.staking-owner-lock { margin:26px 28px 0; padding:16px; border:1px solid rgba(212,169,94,.2); color:#85877f; font:8px/1.6 var(--font-geist-mono),monospace; letter-spacing:.08em; }
+.staking-owner-lock code { color:var(--gold); }
+.staking-control-grid { display:grid; grid-template-columns:repeat(2,1fr); padding:28px; gap:12px; }
+.staking-control-grid > form,.staking-control-grid > div { min-height:335px; padding:27px; border:1px solid var(--line); background:rgba(10,13,11,.75); }
+.staking-control-grid h3 { margin:18px 0 12px; color:#d0cdc2; font:400 27px Georgia,serif; }
+.staking-control-grid > form > p { min-height:45px; color:#73756f; font-size:11px; line-height:1.55; }
+.staking-control-grid label { display:block; margin:23px 0 8px; color:#666862; font:7px var(--font-geist-mono),monospace; letter-spacing:.13em; }
+.staking-control-grid input { width:100%; height:45px; padding:0 13px; border:1px solid var(--line); outline:0; background:#0e1110; color:#d8d5cb; font:11px var(--font-geist-mono),monospace; }
+.staking-control-grid input:focus { border-color:rgba(212,169,94,.5); }
+.staking-control-grid button { min-height:42px; border:1px solid var(--gold); background:transparent; color:#c8c5b9; font:7px var(--font-geist-mono),monospace; letter-spacing:.12em; }
+.staking-control-grid form > button { width:100%; display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding:0 13px; }
+.staking-control-grid button b { font-size:13px; font-weight:400; }
+.staking-control-grid button:disabled { opacity:.3; cursor:not-allowed; }
+.staking-state-control > div { min-height:82px; display:grid; grid-template-columns:1fr 100px; align-items:center; gap:15px; border-bottom:1px solid var(--line); }
+.staking-state-control > div:first-of-type { margin-top:34px; }
+.staking-state-control p { margin:0; color:#797b74; font:7px var(--font-geist-mono),monospace; letter-spacing:.11em; }
+.staking-state-control p small { display:block; margin-top:8px; color:var(--teal); font:6px var(--font-geist-mono),monospace; }
+.staking-control-status { display:block; margin:0 28px 28px; padding:14px; border:1px solid rgba(77,182,169,.25); background:rgba(77,182,169,.035); color:#8eb0a9; font:7px/1.5 var(--font-geist-mono),monospace; letter-spacing:.09em; overflow-wrap:anywhere; }
+@media (max-width:900px) { .staking-admin-summary { grid-template-columns:1fr 1fr; }.staking-admin-summary > div:nth-child(2) { border-right:0; }.staking-admin-summary > div:nth-child(-n+2) { border-bottom:1px solid var(--line); } }
+@media (max-width:720px) { .staking-admin-section { margin:0 12px 70px; }.staking-admin-title { min-height:300px; grid-template-columns:1fr; align-content:end; gap:30px; padding:28px 20px; }.staking-admin-summary { grid-template-columns:1fr 1fr; }.staking-admin-summary > div { min-height:110px; padding:18px; }.staking-admin-summary strong { font-size:22px; }.staking-control-grid { grid-template-columns:1fr; padding:10px; }.staking-control-grid > form,.staking-control-grid > div { min-height:310px; padding:22px 18px; }.staking-owner-lock { margin:18px 10px 8px; } }

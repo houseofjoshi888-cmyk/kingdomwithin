@@ -20,7 +20,7 @@ export default function HowToUse() {
           <span><strong>KINGDOM WITHIN</strong><small>MALKUTA PROTOCOL</small></span>
         </Link>
         <div className="status-line"><span className="pulse" /> PROTOCOL V2.0 <i /> GUIDE</div>
-        <Link className="guide-back" href="/#composer">OPEN INSTRUMENT <span>↗</span></Link>
+        <div className="top-actions"><Link href="/staking">STAKING</Link><Link className="guide-back" href="/#composer">OPEN INSTRUMENT <span>↗</span></Link></div>
       </header>
 
       <section className="guide-hero">

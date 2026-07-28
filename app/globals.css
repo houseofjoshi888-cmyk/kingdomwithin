@@ -416,7 +416,7 @@ h1 em,.anchor-heading h2 { text-shadow:0 0 42px rgba(212,169,94,.1); }
 .site-footer {
   min-height:240px;
   display:grid;
-  grid-template-columns:1fr 1.25fr 1fr;
+  grid-template-columns:minmax(210px,1fr) minmax(260px,1.1fr) minmax(360px,1.35fr);
   grid-template-areas:"brand signature nav" "tagline tagline tagline";
   gap:38px;
   align-items:center;
@@ -430,10 +430,15 @@ h1 em,.anchor-heading h2 { text-shadow:0 0 42px rgba(212,169,94,.1); }
 .footer-signature > span { color:var(--teal); font:9px var(--font-geist-mono),monospace; letter-spacing:.22em; }
 .footer-signature strong { margin-top:10px; color:#d8d2c3; font:400 clamp(20px,2vw,29px) Georgia,serif; letter-spacing:.08em; }
 .footer-signature small { margin-top:10px; color:#62665f; font:9px var(--font-geist-mono),monospace; letter-spacing:.09em; }
-.site-footer nav { grid-area:nav; display:flex; justify-content:flex-end; flex-wrap:wrap; gap:18px; }
+.site-footer nav { grid-area:nav; display:grid; grid-template-columns:repeat(2,max-content); justify-content:end; column-gap:28px; }
 .site-footer nav a { min-height:44px; display:flex; align-items:center; color:#8d8d84; font:9px var(--font-geist-mono),monospace; letter-spacing:.12em; text-decoration:none; transition:color .2s ease; }
 .site-footer nav a:hover { color:var(--gold); }
 .site-footer > p { grid-area:tagline; margin:0; padding-top:24px; border-top:1px solid rgba(255,255,255,.07); color:#646760; font:9px var(--font-geist-mono),monospace; letter-spacing:.2em; text-align:center; }
+
+@media (max-width:1050px) {
+  .site-footer { grid-template-columns:1fr 1fr; grid-template-areas:"brand signature" "nav nav" "tagline tagline"; }
+  .site-footer nav { grid-template-columns:repeat(5,max-content); justify-content:center; }
+}
 
 @media (max-width:720px) {
   .intro::after { right:-90px; bottom:-10%; width:280px; }
@@ -444,7 +449,8 @@ h1 em,.anchor-heading h2 { text-shadow:0 0 42px rgba(212,169,94,.1); }
   .chain-specs div:last-child { border-bottom:0; }
   .site-footer { grid-template-columns:1fr; grid-template-areas:"brand" "signature" "nav" "tagline"; gap:26px; text-align:center; }
   .site-footer .footer-brand { justify-self:center; }
-  .site-footer nav { justify-content:center; }
+  .site-footer nav { width:min(100%,440px); grid-template-columns:repeat(2,minmax(0,1fr)); justify-self:center; column-gap:20px; }
+  .site-footer nav a { justify-content:center; text-align:center; }
 }
 
 @media (max-width:480px) {

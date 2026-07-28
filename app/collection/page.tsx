@@ -68,7 +68,7 @@ export default function CollectionPage() {
           <span><strong>KINGDOM WITHIN</strong><small>SOVEREIGN COLLECTION</small></span>
         </Link>
         <div className="status-line"><span className="pulse" /> BASE MAINNET <i /> VERIFIED ARTIFACTS</div>
-        <div className="top-actions"><Link href="/">COMPOSER</Link><Link href="/verify">VERIFY NFT</Link><WalletButton /></div>
+        <div className="top-actions"><Link href="/">COMPOSER</Link><Link href="/staking">STAKING</Link><Link href="/verify">VERIFY NFT</Link><WalletButton /></div>
       </header>
 
       <section className="collection-hero">
