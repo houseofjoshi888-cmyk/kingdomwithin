@@ -1,6 +1,8 @@
 import { getAddress, isAddress, zeroAddress, type Address } from "viem";
 
-const configuredStakingAddress = process.env.NEXT_PUBLIC_MALKUTA_STAKING_ADDRESS?.trim();
+const deployedStakingAddress = "0x210ee4eeD13bAFfdA5B9bddCbAE1Cc7f6440c106";
+const configuredStakingAddress =
+  process.env.NEXT_PUBLIC_MALKUTA_STAKING_ADDRESS?.trim() || deployedStakingAddress;
 
 export const MALKUTA_STAKING_CONFIGURED = Boolean(
   configuredStakingAddress && isAddress(configuredStakingAddress) && configuredStakingAddress !== zeroAddress,
