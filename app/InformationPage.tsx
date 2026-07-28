@@ -5,7 +5,7 @@ import { BrandMark } from "./BrandMark";
 
 type Section = { title: string; content: ReactNode };
 
-export function InformationPage({ code, eyebrow, title, intro, sections, children }: { code: string; eyebrow: string; title: ReactNode; intro: string; sections?: Section[]; children?: ReactNode }) {
+export function InformationPage({ code, eyebrow, title, intro, sections, children, lastUpdated = "16 JULY 2026" }: { code: string; eyebrow: string; title: ReactNode; intro: string; sections?: Section[]; children?: ReactNode; lastUpdated?: string }) {
   return (
     <main className="information-page">
       <header className="topbar">
@@ -17,12 +17,13 @@ export function InformationPage({ code, eyebrow, title, intro, sections, childre
         <p className="eyebrow"><span>{code}</span> {eyebrow}</p>
         <h1>{title}</h1>
         <p>{intro}</p>
-        <small>LAST UPDATED · 16 JULY 2026</small>
+        <small>LAST UPDATED · {lastUpdated}</small>
       </section>
       <div className="information-layout">
         <nav className="information-nav" aria-label="Trust center">
           <span>TRUST CENTER</span>
           <Link href="/faq">FAQ</Link>
+          <Link href="/tokenomics-policy">TOKENOMICS POLICY</Link>
           <Link href="/privacy">PRIVACY</Link>
           <Link href="/terms">TERMS</Link>
           <Link href="/contact">CONTACT</Link>

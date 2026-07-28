@@ -20,6 +20,7 @@ export function SiteFooter({ tagline = "THE SCRIPTURE IS THE SEED. THE PROTOCOL 
         <Link href="/how-to-use">HOW TO USE</Link>
         <Link href="/verify">VERIFY</Link>
         <Link href="/faq">FAQ</Link>
+        <Link href="/tokenomics-policy">TOKENOMICS POLICY</Link>
         <Link href="/privacy">PRIVACY</Link>
         <Link href="/terms">TERMS</Link>
         <Link href="/contact">CONTACT</Link>
