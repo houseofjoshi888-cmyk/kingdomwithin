@@ -27,6 +27,9 @@ contract MalkutaStakingUpgradeable is
     using SafeERC20 for IERC20;
 
     uint256 public constant BASE_MULTIPLIER = 100;
+    uint256 public constant THIRTY_DAY_MULTIPLIER = 200;
+    uint256 public constant NINETY_DAY_MULTIPLIER = 250;
+    uint256 public constant MAX_MULTIPLIER = 300;
     uint256 public constant THIRTY_DAYS = 30 days;
     uint256 public constant NINETY_DAYS = 90 days;
     uint256 public constant ONE_HUNDRED_EIGHTY_DAYS = 180 days;
@@ -216,9 +219,9 @@ contract MalkutaStakingUpgradeable is
         if (userStake.owner == address(0)) return 0;
 
         uint256 duration = block.timestamp - uint256(userStake.stakedAt);
-        if (duration >= ONE_HUNDRED_EIGHTY_DAYS) return 300;
-        if (duration >= NINETY_DAYS) return 250;
-        if (duration >= THIRTY_DAYS) return 200;
+        if (duration >= ONE_HUNDRED_EIGHTY_DAYS) return MAX_MULTIPLIER;
+        if (duration >= NINETY_DAYS) return NINETY_DAY_MULTIPLIER;
+        if (duration >= THIRTY_DAYS) return THIRTY_DAY_MULTIPLIER;
         return BASE_MULTIPLIER;
     }
 
@@ -229,14 +232,15 @@ contract MalkutaStakingUpgradeable is
 
         if (duration > THIRTY_DAYS) {
             segment = Math.min(duration, NINETY_DAYS) - THIRTY_DAYS;
-            weightedSeconds += segment * 200;
+            weightedSeconds += segment * THIRTY_DAY_MULTIPLIER;
         }
         if (duration > NINETY_DAYS) {
             segment = Math.min(duration, ONE_HUNDRED_EIGHTY_DAYS) - NINETY_DAYS;
-            weightedSeconds += segment * 250;
+            weightedSeconds += segment * NINETY_DAY_MULTIPLIER;
         }
         if (duration > ONE_HUNDRED_EIGHTY_DAYS) {
-            weightedSeconds += (duration - ONE_HUNDRED_EIGHTY_DAYS) * 300;
+            // Rewards continue accruing indefinitely, capped at the 3x multiplier.
+            weightedSeconds += (duration - ONE_HUNDRED_EIGHTY_DAYS) * MAX_MULTIPLIER;
         }
     }
 
